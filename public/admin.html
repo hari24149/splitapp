@@ -28,26 +28,78 @@
     body {
       margin: 0;
       font-family: "Segoe UI", sans-serif;
-      display: flex;
       height: 100vh;
       background: var(--bg-color);
       color: var(--text-color);
       transition: all 0.3s ease;
-      flex-direction: row;
     }
 
+    /* Layout changed: No sidebar on desktop, top nav bar instead */
+    .layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* Hamburger for mobile */
+    .hamburger {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 30px;
+      height: 22px;
+      cursor: pointer;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .hamburger span {
+      display: block;
+      height: 4px;
+      background: var(--text-color);
+      border-radius: 2px;
+      transition: 0.3s ease;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+
+    /* Sidebar - mobile style */
     .sidebar {
       width: 230px;
       background-color: var(--sidebar-color);
       padding: 25px 20px;
       box-shadow: 2px 0 8px rgba(0,0,0,0.3);
-      flex-shrink: 0;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease;
+      z-index: 100;
+      transform: translateX(-100%);
+      overflow-y: auto;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
     }
 
     .sidebar h2 {
-      text-align: center;
       color: var(--accent);
       margin-bottom: 25px;
+      text-align: center;
     }
 
     .sidebar ul {
@@ -74,12 +126,16 @@
       color: white;
     }
 
+    /* Main content */
     .main-content {
       flex-grow: 1;
       padding: 30px;
-      overflow-y: auto;
+      margin-left: 0;
+      width: 100%;
+      transition: margin-left 0.3s ease;
     }
 
+    /* Header section */
     header {
       background-color: var(--card-bg);
       padding: 20px;
@@ -88,6 +144,7 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
 
+    /* Sections */
     .section {
       display: none;
       background-color: var(--card-bg);
@@ -100,6 +157,7 @@
       display: block;
     }
 
+    /* Buttons */
     button {
       padding: 10px 20px;
       margin: 8px 5px;
@@ -116,6 +174,7 @@
       background-color: #0288d1;
     }
 
+    /* Settings styling */
     .setting-item {
       display: flex;
       justify-content: space-between;
@@ -133,6 +192,7 @@
       border: 1px solid #555;
     }
 
+    /* Switch styling */
     .switch {
       position: relative;
       display: inline-block;
@@ -176,6 +236,7 @@
       transform: translateX(20px);
     }
 
+    /* Modal styles */
     .modal {
       display: none;
       position: fixed;
@@ -217,124 +278,161 @@
       line-height: 1.6;
     }
 
-    @media screen and (max-width: 768px) {
-      body {
-        flex-direction: column;
+    /* Responsive and desktop top nav fixes */
+
+    /* For screen >= 769px, show top nav bar */
+    @media screen and (min-width: 769px) {
+      /* Hide hamburger */
+      .hamburger {
+        display: none;
       }
 
+      /* Sidebar transforms into top nav bar */
       .sidebar {
-        width: 100%;
-        padding: 15px;
-        box-shadow: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        width: 100vw;
+        padding: 0 30px;
+        background-color: var(--sidebar-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        transform: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        z-index: 1000;
       }
 
       .sidebar h2 {
-        margin-bottom: 10px;
+        margin: 0;
+        font-size: 24px;
+        color: var(--accent);
+        user-select: none;
       }
 
       .sidebar ul {
+        margin: 0;
+        padding: 0;
         display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
+        gap: 25px;
+        list-style: none;
+        flex-wrap: nowrap;
+        align-items: center;
+        overflow-x: auto;
       }
 
       .sidebar li {
-        margin: 10px;
-        flex: 1 1 45%;
+        margin: 0;
       }
 
+      .sidebar a {
+        padding: 8px 12px;
+        font-weight: 600;
+        font-size: 16px;
+        white-space: nowrap;
+        border-radius: 8px;
+        color: var(--text-color);
+        transition: background 0.3s ease;
+        display: inline-block;
+      }
+
+      .sidebar a:hover,
+      .sidebar a.active {
+        background: var(--accent);
+        color: white;
+      }
+
+      /* Push main content below the top nav */
       .main-content {
-        padding: 15px;
-      }
-
-      .setting-item {
-        flex-direction: column;
-        align-items: flex-start;
+        margin-left: 0;
+        padding: 90px 40px 40px;
       }
     }
 
-    @media screen and (max-width: 480px) {
-      button {
-        width: 100%;
-        margin-bottom: 10px;
-      }
-
-      .setting-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      select {
-        width: 100%;
+    /* On small screen: main content padding to avoid fixed hamburger */
+    @media screen and (max-width: 768px) {
+      .main-content {
+        padding: 60px 15px 15px;
       }
     }
   </style>
 </head>
-
 <body>
-  <div class="sidebar">
-    <h2>Admin</h2>
-    <ul>
-      <li><a href="#" class="active" onclick="showSection('dashboard', this)">Dashboard</a></li>
-      <li><a href="#" onclick="showSection('users', this)">Users</a></li>
-      <li><a href="#" onclick="showSection('settings', this)">Settings</a></li>
-      <li><a href="#" onclick="window.location.href='/logout'">Logout</a></li>
-    </ul>
+
+  <div class="hamburger" onclick="toggleSidebar(this)">
+    <span></span>
+    <span></span>
+    <span></span>
   </div>
 
-  <div class="main-content">
-    <header><h1 id="section-title">Dashboard</h1></header>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar">
+      <h2>Admin</h2>
+      <ul>
+        <li><a href="#" class="active" onclick="showSection('dashboard', this)">Dashboard</a></li>
+        <li><a href="#" onclick="showSection('users', this)">Users</a></li>
+        <li><a href="#" onclick="showSection('settings', this)">Settings</a></li>
+        <li><a href="#" onclick="openLogoutModal(event)">Logout</a></li>
+      </ul>
+    </nav>
 
-    <section id="dashboard" class="section active">
-      <p>Welcome to your modern admin dashboard ✨</p>
-    </section>
+    <div class="main-content" id="main-content">
+      <header><h1 id="section-title">Dashboard</h1></header>
 
-    <section id="users" class="section">
-      <h2>User Management</h2>
-      <button onclick="addUser()">Add User</button>
-      <button onclick="fetchUsers()">View Users</button>
-      <button onclick="createGroup()">Create Group</button>
-      <button onclick="showGroups()">Show Groups</button>
-      <ul id="user-list"></ul>
-    </section>
+      <section id="dashboard" class="section active">
+        <p>Welcome to your modern admin dashboard ✨</p>
+      </section>
 
-    <section id="settings" class="section">
-      <h2>Settings</h2>
+      <section id="users" class="section">
+        <h2>User Management</h2>
+        <button onclick="addUser()">Add User</button>
+        <button onclick="fetchUsers()">View Users</button>
+        <button onclick="createGroup()">Create Group</button>
+        <button onclick="showGroups()">Show Groups</button>
+        <ul id="user-list"></ul>
+      </section>
 
-      <div class="setting-item">
-        <label for="theme-toggle">Dark Mode</label>
-        <label class="switch">
-          <input type="checkbox" id="theme-toggle" checked />
-          <span class="slider"></span>
-        </label>
-      </div>
+      <section id="settings" class="section">
+        <h2>Settings</h2>
 
-      <div class="setting-item">
-        <label for="language">Language</label>
-        <select id="language">
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="es">Spanish</option>
-        </select>
-      </div>
+        <div class="setting-item">
+          <label for="theme-toggle">Dark Mode</label>
+          <label class="switch">
+            <input type="checkbox" id="theme-toggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
 
-      <div class="setting-item">
-        <button onclick="rateApp()">⭐ Rate App</button>
-        <button onclick="shareApp()">📤 Share App</button>
-      </div>
+        <div class="setting-item">
+          <label for="language">Language</label>
+          <select id="language">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+            <option value="es">Spanish</option>
+          </select>
+        </div>
 
-      <div class="setting-item">
-        <button onclick="showAbout()">ℹ️ About</button>
-      </div>
+        <div class="setting-item">
+          <button onclick="rateApp()">⭐ Rate App</button>
+          <button onclick="shareApp()">📤 Share App</button>
+        </div>
 
-      <div class="setting-item">
-        <label for="notif-toggle">Notifications</label>
-        <label class="switch">
-          <input type="checkbox" id="notif-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
-    </section>
+        <div class="setting-item">
+          <button onclick="showAbout()">ℹ️ About</button>
+        </div>
+
+        <div class="setting-item">
+          <label for="notif-toggle">Notifications</label>
+          <label class="switch">
+            <input type="checkbox" id="notif-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+    </div>
   </div>
 
   <!-- About Modal -->
@@ -346,7 +444,25 @@
     </div>
   </div>
 
+  <!-- Logout Confirmation Modal -->
+  <div id="logout-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeLogout()">&times;</span>
+      <h3>Confirm Logout</h3>
+      <p>Are you sure you want to logout?</p>
+      <div style="text-align: right; margin-top: 20px;">
+        <button onclick="confirmLogout()">Yes</button>
+        <button onclick="closeLogout()">No</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    function toggleSidebar(icon) {
+      document.getElementById("sidebar").classList.toggle("open");
+      icon.classList.toggle("active");
+    }
+
     function showSection(id, el) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelector(`#${id}`).classList.add('active');
@@ -354,6 +470,11 @@
 
       document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
       el.classList.add('active');
+
+      if (window.innerWidth <= 768) {
+        document.getElementById("sidebar").classList.remove("open");
+        document.querySelector(".hamburger").classList.remove("active");
+      }
     }
 
     function addUser() {
@@ -363,17 +484,17 @@
     function createGroup() {
       window.location.href = "/creategroup.html";
     }
-    function showGroups()
-    { 
+
+    function showGroups() {
       window.location.href = "/showgroups.html";
     }
+
     function fetchUsers() {
       fetch('/getusers')
         .then(res => res.json())
         .then(data => {
           const list = document.getElementById("user-list");
           list.innerHTML = "";
-
           if (data.success && data.users.length > 0) {
             data.users.forEach(user => {
               const li = document.createElement("li");
@@ -381,9 +502,7 @@
               list.appendChild(li);
             });
           } else {
-            const li = document.createElement("li");
-            li.textContent = "No users found.";
-            list.appendChild(li);
+            list.innerHTML = "<li>No users found.</li>";
           }
         })
         .catch(err => {
@@ -393,13 +512,8 @@
     }
 
     document.getElementById("theme-toggle").addEventListener("change", function () {
-      if (this.checked) {
-        document.body.classList.remove("light");
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.body.classList.add("light");
-        localStorage.setItem("theme", "light");
-      }
+      document.body.classList.toggle("light", !this.checked);
+      localStorage.setItem("theme", this.checked ? "dark" : "light");
     });
 
     window.addEventListener("load", () => {
@@ -407,21 +521,18 @@
       if (theme === "light") {
         document.body.classList.add("light");
         document.getElementById("theme-toggle").checked = false;
+      } else {
+        document.body.classList.remove("light");
+        document.getElementById("theme-toggle").checked = true;
       }
     });
 
-    document.getElementById("language").addEventListener("change", function () {
-      alert("Language changed to: " + this.value);
-    });
-
     function rateApp() {
-      alert("Thank you for rating!");
+      alert("Thanks for rating the app! ⭐️");
     }
 
     function shareApp() {
-      navigator.clipboard.writeText(window.location.href).then(() => {
-        alert("App link copied to clipboard!");
-      });
+      alert("Share this app with your friends!");
     }
 
     function showAbout() {
@@ -432,9 +543,37 @@
       document.getElementById("about-modal").style.display = "none";
     }
 
-    document.getElementById("notif-toggle").addEventListener("change", function () {
-      alert(this.checked ? "Notifications enabled" : "Notifications disabled");
-    });
+    // Close modals on click outside content
+    window.onclick = function(event) {
+      const aboutModal = document.getElementById("about-modal");
+      const logoutModal = document.getElementById("logout-modal");
+
+      if (event.target === aboutModal) {
+        closeAbout();
+      }
+
+      if (event.target === logoutModal) {
+        closeLogout();
+      }
+    };
+
+    // Logout modal functions
+    function openLogoutModal(event) {
+      event.preventDefault();
+      document.getElementById("logout-modal").style.display = "block";
+      // Close sidebar if open (especially on mobile)
+      document.getElementById("sidebar").classList.remove("open");
+      document.querySelector(".hamburger").classList.remove("active");
+    }
+
+    function closeLogout() {
+      document.getElementById("logout-modal").style.display = "none";
+    }
+
+    function confirmLogout() {
+      // Redirect to logout endpoint
+      window.location.href = "/logout";
+    }
   </script>
 </body>
 </html>
