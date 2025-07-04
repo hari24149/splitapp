@@ -5,141 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Create Group</title>
   <style>
-      :root {
-        --primary-color: #007bff;
-        --hover-color: #0056b3;
-        --bg-light: #f4f4f4;
-        --text-dark: #333;
-        --card-bg: #ffffff;
-        --shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        --radius: 10px;
-      }
+    :root {
+      --primary-color: #007bff;
+      --hover-color: #0056b3;
+      --bg-light: #f4f4f4;
+      --text-dark: #333;
+      --card-bg: #ffffff;
+      --shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      --radius: 10px;
+    }
 
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      padding: 40px 20px;
+    }
+
+    .group-form {
+      background-color: var(--card-bg);
+      padding: 30px;
+      border-radius: var(--radius);
+      max-width: 600px;
+      margin: auto;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .group-form h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-weight: bold;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: var(--radius);
+      transition: border 0.3s;
+      background-color: #fff;
+      color: var(--text-dark);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      background: #fafafa;
+      border-radius: var(--radius);
+      border: 1px solid #ddd;
+    }
+
+    .checkbox-group label {
+      font-weight: normal;
+      font-size: 15px;
+    }
+
+    .submit-btn {
+      padding: 14px;
+      font-size: 16px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--hover-color);
+    }
+
+    @media (max-width: 768px) {
       body {
-        font-family: "Segoe UI", sans-serif;
-        background-color: var(--bg-light);
-        color: var(--text-dark);
-        padding: 40px 20px;
+        padding: 20px 10px;
       }
 
       .group-form {
-        background-color: var(--card-bg);
-        padding: 30px;
-        border-radius: var(--radius);
-        max-width: 600px;
-        margin: auto;
-        box-shadow: var(--shadow);
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        padding: 20px;
       }
 
+      .submit-btn {
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
       .group-form h2 {
-        text-align: center;
-        margin-bottom: 10px;
-        color: var(--primary-color);
+        font-size: 20px;
       }
 
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .form-group label {
-        font-weight: bold;
-      }
-
-      /* ✨ Apply styling to input, textarea, and select */
       .form-group input,
       .form-group textarea,
       .form-group select {
-        padding: 12px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: var(--radius);
-        transition: border 0.3s;
-        background-color: #fff;
-        color: var(--text-dark);
-      }
-
-      /* ✨ Focus styles for input, textarea, and select */
-      .form-group input:focus,
-      .form-group textarea:focus,
-      .form-group select:focus {
-        border-color: var(--primary-color);
-        outline: none;
-      }
-
-      /* ✅ Checkbox section */
-      .checkbox-group {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 10px;
-        background: #fafafa;
-        border-radius: var(--radius);
-        border: 1px solid #ddd;
-      }
-
-      .checkbox-group label {
-        font-weight: normal;
         font-size: 15px;
       }
 
       .submit-btn {
-        padding: 14px;
-        font-size: 16px;
-        background-color: var(--primary-color);
-        color: white;
-        border: none;
-        border-radius: var(--radius);
-        cursor: pointer;
-        transition: background-color 0.3s;
+        font-size: 14px;
+        padding: 12px;
       }
-
-      .submit-btn:hover {
-        background-color: var(--hover-color);
-      }
-
-      /* 🔁 Responsive Styles */
-      @media (max-width: 768px) {
-        body {
-          padding: 20px 10px;
-        }
-
-        .group-form {
-          padding: 20px;
-        }
-
-        .submit-btn {
-          font-size: 15px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .group-form h2 {
-          font-size: 20px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-          font-size: 15px;
-        }
-
-        .submit-btn {
-          font-size: 14px;
-          padding: 12px;
-        }
-      }
-
+    }
   </style>
 </head>
 <body>
@@ -158,25 +153,15 @@
     </div>
     
     <div class="form-group">
-      <label for="moneySpentBy">Money Spent By</label>
-      <select id="moneySpentBy" name="moneySpentBy" required>
+      <label for="groupCreatedBy">Group Created By</label>
+      <select id="groupCreatedBy" name="groupCreatedBy" required>
         <option value="">Select a person</option>
       </select>
-    </div>
-    
-    <div class="form-group">
-      <label for="moneySpendDate">Money Spend Date</label>
-      <input type="date" id="moneySpendDate" name="moneySpendDate" required />
     </div>
 
     <div class="form-group">
       <label for="formFillingDate">Form Filling Date</label>
       <input type="date" id="formFillingDate" name="formFillingDate" required />
-    </div>
-    
-    <div class="form-group">
-      <label for="totalAmount">Total Amount</label>
-      <input type="number" id="totalAmount" name="totalAmount" required>
     </div>
 
     <div class="form-group">
@@ -223,29 +208,27 @@
 
       const groupName = document.getElementById("groupName").value;
       const groupDesc = document.getElementById("groupDesc").value;
-      const moneySpentByText = document.getElementById("moneySpentBy").value;
-      const moneySpendDate = document.getElementById("moneySpendDate").value;
+      const groupCreatedBy = document.getElementById("groupCreatedBy").value;
       const formFillingDate = document.getElementById("formFillingDate").value;
-      const totalAmount = parseFloat(document.getElementById("totalAmount").value);
       const numPersons = parseInt(document.getElementById("numPersons").value);
-      const selectedPersons = Array.from(document.querySelectorAll('input[name="person"]:checked')).map(cb => cb.value);
-      console.log("Hai",selectedPersons);
+
+      const selectedPersons = Array.from(
+        document.querySelectorAll('input[name="person"]:checked')
+      ).map(cb => cb.value);
+
+      const selectedPersonsStr = selectedPersons.join(":");
+
       const payload = {
         groupName,
         groupDesc,
-        moneySpentByText,
-        moneySpendDate,
+        groupCreatedBy,
         formFillingDate,
-        totalAmount,
         numPersons,
-        selectedPersons,
+        users: selectedPersonsStr
       };
-      console.log(payload);
-      // console.log("users in group",users);
-      // if(numPersons!==selectedPersons.length)
-      // {
-      //   alert("number of persons and selected persons is not matching");
-      // }
+
+      console.log("Payload:", payload);
+
       fetch("/creategroup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -262,53 +245,36 @@
         });
     }
 
-    // window.onload = loadUsers;
+    async function loadUsersforGroupCreatedBy() {
+      const dropdown = document.getElementById("groupCreatedBy");
+      let userMap = {};
+
+      try {
+        const response = await fetch("/getusers");
+        const result = await response.json();
+        const users = result.users;
+
+        dropdown.innerHTML = `<option value="">Select a person</option>`;
+
+        users.forEach(user => {
+          userMap[user._id] = user;
+
+          const option = document.createElement("option");
+          option.value = user.name;
+          option.textContent = user.name || user.email;
+          dropdown.appendChild(option);
+        });
+
+      } catch (error) {
+        console.error("Error loading users:", error);
+      }
+    }
+
+    window.onload = function () {
+      loadUsers();
+      loadUsersforGroupCreatedBy();
+    };
   </script>
-<script>
-  let userMap = {}; // Store user details by ID
-
-  async function loadUsersforSpentBy() {
-    const dropdown = document.getElementById("moneySpentBy");
-
-    try {
-      const response = await fetch("/getusers");
-      const result = await response.json();
-      const users = result.users;
-
-      dropdown.innerHTML = `<option value="">Select a person</option>`; // Clear existing options
-
-      users.forEach(user => {
-        userMap[user._id] = user; // Save full user data for lookup
-
-        const option = document.createElement("option");
-        option.value = user.name;
-        option.textContent = user.name || user.email;
-        dropdown.appendChild(option);
-      });
-
-    } catch (error) {
-      console.error("Error loading users:", error);
-    }
-  }
-
-  // Handle selection change
-  document.getElementById("moneySpentBy").addEventListener("change", (e) => {
-    const selectedId = e.target.value;
-    if (selectedId && userMap[selectedId]) {
-      const selectedUser = userMap[selectedId];
-      console.log("Selected user details:", selectedUser);
-
-      // You can display it in the DOM if needed:
-      // document.getElementById("selectedUserDetails").textContent = JSON.stringify(selectedUser);
-    }
-  });
-
-  // window.onload = loadUsersforSpentBy;
-  window.onload = function () {
-    loadUsers();
-    loadUsersforSpentBy();
-  };
-</script>
 
 </body>
 </html>

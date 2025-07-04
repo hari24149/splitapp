@@ -132,43 +132,45 @@ app.get("/logout", (req, res) => {
   });
 });
 
+// Route to create group
 app.post("/creategroup", async (req, res) => {
   try {
     const {
       groupName,
       groupDesc,
-      moneySpentByText,
-      moneySpendDate,
+      groupCreatedBy,
       formFillingDate,
-      totalAmount,
       numPersons,
-      selectedPersons
+      users // This is a colon-separated string like "admin:admin1:Ramu"
     } = req.body;
 
-    const amountShare = totalAmount / numPersons;
+    // Convert "admin:admin1:Ramu" to { admin: 0, admin1: 0, Ramu: 0 }
+    const userObj = {};
+    users.split(":").forEach(name => {
+      userObj[name] = 0;
+    });
+    const totalAmount=0;
+    const newGroup = new Person({
+      groupName,
+      groupDesc,
+      groupCreatedBy,
+      formFillingDate,
+      numPersons,
+      users: userObj,
+      totalAmount
+    });
 
-    // Insert one document for each selected person
-    for (const personId of selectedPersons) {
-      const record = new Person({
-        groupName,
-        groupDesc,
-        moneySpentByText,
-        moneySpendDate,
-        formFillingDate,
-        totalAmount,
-        numPersons,
-        selectedPerson: personId,
-        amountShare
-      });
-      await record.save();
-    }
+    await newGroup.save();
 
-    res.status(201).json({ message: "Group created successfully" });
+    res.status(201).json({ message: "Group created successfully", data: newGroup });
   } catch (err) {
     console.error("Error saving group:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
+
+
+
 // Example in Express.js
 app.get("/getgroups", async (req, res) => {
   try {
