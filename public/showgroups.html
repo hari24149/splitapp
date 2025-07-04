@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Group Details</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #fff);
+      padding: 40px 20px;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0d47a1;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+    }
+
+    .group-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .group-card {
+      background: linear-gradient(135deg, #ffffff, #f1f8ff);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      padding: 25px 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border-left: 5px solid #1976d2;
+    }
+
+    .group-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .group-card h3 {
+      color: #1565c0;
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+
+    .group-card p {
+      margin: 6px 0;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .group-card strong {
+      color: #0d47a1;
+    }
+
+    .group-card ul {
+      margin-top: 10px;
+      padding-left: 20px;
+      list-style: disc;
+    }
+
+    .group-card li {
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: #444;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>All Groups</h1>
+  <div class="group-container" id="groupContainer">Loading...</div>
+
+  <script>
+    async function loadGroups() {
+      const container = document.getElementById("groupContainer");
+      container.innerHTML = "Loading...";
+
+      try {
+        const res = await fetch("/getgroups");
+        const data = await res.json();
+        const entries = data.personsData;
+        const grouped = {};
+        console.log(data);
+        entries.forEach(item => {
+          const key = item.groupName + "_" + item.moneySpentByText;
+          if (!grouped[key]) {
+            grouped[key] = {
+              groupName: item.groupName,
+              groupDesc: item.groupDesc,
+              moneySpentByText: item.moneySpentByText,
+              moneySpendDate: item.moneySpendDate,
+              totalAmount: item.totalAmount,
+              members: []
+            };
+          }
+
+          grouped[key].members.push({
+            name: item.selectedPerson,
+            share: item.amountShare
+          });
+        });
+        const groupList = Object.values(grouped);
+        // console.log("gl",groupList);
+        if (groupList.length === 0) {
+          container.innerHTML = "<p>No groups found.</p>";
+          return;
+        }
+
+        container.innerHTML = ""; // Clear loading
+
+        groupList.forEach(group => {
+          const card = document.createElement("div");
+          card.className = "group-card";
+
+          card.innerHTML = `
+            <h3>${group.groupName}</h3>
+            <p><strong>Spent By:</strong> ${group.moneySpentByText}</p>
+            <p><strong>Date:</strong> ${new Date(group.moneySpendDate).toLocaleDateString()}</p>
+            <p><strong>Total:</strong> ₹${group.totalAmount.toFixed(2)}</p>
+            <p><strong>Members:</strong></p>
+            <ul>
+              ${group.members.map(m => `<li>${m.name} - ₹${m.share.toFixed(2)}</li>`).join('')}
+            </ul>
+          `;
+
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error("Error loading groups", err);
+        container.innerHTML = "<p style='color:red;'>Failed to load groups.</p>";
+      }
+    }
+
+    window.onload = loadGroups;
+  </script>
+</body>
+</html>

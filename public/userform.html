@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel Form</title>
+  <style>
+    :root {
+      --bg-light: #f4f6f8;
+      --bg-dark: #121212;
+      --text-light: #ffffff;
+      --text-dark: #000000;
+      --card-light: #ffffff;
+      --card-dark: #1e1e1e;
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --radius: 10px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      padding: 40px 20px;
+    }
+
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+    }
+
+    .admin-container {
+      max-width: 500px;
+      margin: auto;
+      background-color: var(--card-light);
+      padding: 30px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark .admin-container {
+      background-color: var(--card-dark);
+      color: var(--text-light);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: var(--primary);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: var(--radius);
+      font-size: 15px;
+      background-color: transparent;
+      color: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-submit {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .form-submit:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .theme-toggle-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .theme-toggle-label {
+      font-size: 14px;
+      margin-right: 8px;
+    }
+
+    input[type="checkbox"] {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    @media (max-width: 600px) {
+      .admin-container {
+        padding: 20px;
+      }
+
+      .form-group input {
+        font-size: 14px;
+      }
+
+      .form-submit {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body class="light">
+
+  <div class="admin-container">
+    <!-- <div class="theme-toggle-container">
+      <label class="theme-toggle-label" for="theme-toggle">Dark Mode:</label>
+      <input type="checkbox" id="theme-toggle">
+    </div> -->
+
+    <h2>ADMIN PANEL</h2>
+
+    <form id="userForm" action="/signup" method="POST">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email / Mobile</label>
+        <input type="text" id="email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Role</label>
+        <input type="text" id="role" name="role" required>
+      </div>
+
+      <button type="submit" class="form-submit">Add User</button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("theme-toggle");
+      const theme = localStorage.getItem("theme");
+
+      if (theme === "dark") {
+        document.body.classList.remove("light");
+        document.body.classList.add("dark");
+        toggle.checked = true;
+      } else {
+        document.body.classList.add("light");
+        toggle.checked = false;
+      }
+
+      toggle.addEventListener("change", () => {
+        if (toggle.checked) {
+          document.body.classList.remove("light");
+          document.body.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.body.classList.remove("dark");
+          document.body.classList.add("light");
+          localStorage.setItem("theme", "light");
+        }
+      });
+    });
+  </script>
+</body>
+</html>

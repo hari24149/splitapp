@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modern Admin Dashboard</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --sidebar-color: #1f1f1f;
+      --accent: #4fc3f7;
+      --card-bg: #1e1e1e;
+    }
+
+    body.light {
+      --bg-color: #f4f4f4;
+      --text-color: #111111;
+      --sidebar-color: #ffffff;
+      --accent: #007acc;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      height: 100vh;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+      flex-direction: row;
+    }
+
+    .sidebar {
+      width: 230px;
+      background-color: var(--sidebar-color);
+      padding: 25px 20px;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      color: var(--accent);
+      margin-bottom: 25px;
+    }
+
+    .sidebar ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .sidebar li {
+      margin: 18px 0;
+    }
+
+    .sidebar a {
+      text-decoration: none;
+      color: var(--text-color);
+      padding: 10px;
+      display: block;
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    header {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .section {
+      display: none;
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 8px 5px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #0288d1;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+
+    select, input[type="checkbox"] {
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 14px;
+      background: transparent;
+      color: var(--text-color);
+      border: 1px solid #555;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 45px;
+      height: 25px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0;
+      right: 0; bottom: 0;
+      background-color: #888;
+      border-radius: 34px;
+      transition: 0.4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 17px;
+      width: 17px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.6);
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 10px;
+      position: relative;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .close-btn {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    ul#user-list {
+      margin-left: 20px;
+      line-height: 1.6;
+    }
+
+    @media screen and (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        padding: 15px;
+        box-shadow: none;
+      }
+
+      .sidebar h2 {
+        margin-bottom: 10px;
+      }
+
+      .sidebar ul {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+      }
+
+      .sidebar li {
+        margin: 10px;
+        flex: 1 1 45%;
+      }
+
+      .main-content {
+        padding: 15px;
+      }
+
+      .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      button {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>Admin</h2>
+    <ul>
+      <li><a href="#" class="active" onclick="showSection('dashboard', this)">Dashboard</a></li>
+      <li><a href="#" onclick="showSection('users', this)">Users</a></li>
+      <li><a href="#" onclick="showSection('settings', this)">Settings</a></li>
+      <li><a href="#" onclick="window.location.href='/logout'">Logout</a></li>
+    </ul>
+  </div>
+
+  <div class="main-content">
+    <header><h1 id="section-title">Dashboard</h1></header>
+
+    <section id="dashboard" class="section active">
+      <p>Welcome to your modern admin dashboard ✨</p>
+    </section>
+
+    <section id="users" class="section">
+      <h2>User Management</h2>
+      <button onclick="addUser()">Add User</button>
+      <button onclick="fetchUsers()">View Users</button>
+      <button onclick="createGroup()">Create Group</button>
+      <button onclick="showGroups()">Show Groups</button>
+      <ul id="user-list"></ul>
+    </section>
+
+    <section id="settings" class="section">
+      <h2>Settings</h2>
+
+      <div class="setting-item">
+        <label for="theme-toggle">Dark Mode</label>
+        <label class="switch">
+          <input type="checkbox" id="theme-toggle" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-item">
+        <label for="language">Language</label>
+        <select id="language">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="es">Spanish</option>
+        </select>
+      </div>
+
+      <div class="setting-item">
+        <button onclick="rateApp()">⭐ Rate App</button>
+        <button onclick="shareApp()">📤 Share App</button>
+      </div>
+
+      <div class="setting-item">
+        <button onclick="showAbout()">ℹ️ About</button>
+      </div>
+
+      <div class="setting-item">
+        <label for="notif-toggle">Notifications</label>
+        <label class="switch">
+          <input type="checkbox" id="notif-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeAbout()">&times;</span>
+      <h3>About This App</h3>
+      <p>This is a modern admin dashboard UI built with HTML, CSS, and JavaScript. Version 2.0</p>
+    </div>
+  </div>
+
+  <script>
+    function showSection(id, el) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelector(`#${id}`).classList.add('active');
+      document.getElementById("section-title").innerText = id.charAt(0).toUpperCase() + id.slice(1);
+
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function addUser() {
+      window.location.href = "/userform.html";
+    }
+
+    function createGroup() {
+      window.location.href = "/creategroup.html";
+    }
+    function showGroups()
+    { 
+      window.location.href = "/showgroups.html";
+    }
+    function fetchUsers() {
+      fetch('/getusers')
+        .then(res => res.json())
+        .then(data => {
+          const list = document.getElementById("user-list");
+          list.innerHTML = "";
+
+          if (data.success && data.users.length > 0) {
+            data.users.forEach(user => {
+              const li = document.createElement("li");
+              li.textContent = `${user.name} (${user.email})`;
+              list.appendChild(li);
+            });
+          } else {
+            const li = document.createElement("li");
+            li.textContent = "No users found.";
+            list.appendChild(li);
+          }
+        })
+        .catch(err => {
+          alert("Failed to fetch users.");
+          console.error(err);
+        });
+    }
+
+    document.getElementById("theme-toggle").addEventListener("change", function () {
+      if (this.checked) {
+        document.body.classList.remove("light");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.add("light");
+        localStorage.setItem("theme", "light");
+      }
+    });
+
+    window.addEventListener("load", () => {
+      const theme = localStorage.getItem("theme");
+      if (theme === "light") {
+        document.body.classList.add("light");
+        document.getElementById("theme-toggle").checked = false;
+      }
+    });
+
+    document.getElementById("language").addEventListener("change", function () {
+      alert("Language changed to: " + this.value);
+    });
+
+    function rateApp() {
+      alert("Thank you for rating!");
+    }
+
+    function shareApp() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert("App link copied to clipboard!");
+      });
+    }
+
+    function showAbout() {
+      document.getElementById("about-modal").style.display = "block";
+    }
+
+    function closeAbout() {
+      document.getElementById("about-modal").style.display = "none";
+    }
+
+    document.getElementById("notif-toggle").addEventListener("change", function () {
+      alert(this.checked ? "Notifications enabled" : "Notifications disabled");
+    });
+  </script>
+</body>
+</html>
