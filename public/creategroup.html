@@ -6,104 +6,132 @@
   <title>Create Group</title>
   <style>
     :root {
-      --primary-color: #007bff;
-      --hover-color: #0056b3;
-      --bg-light: #f4f4f4;
-      --text-dark: #333;
-      --card-bg: #ffffff;
-      --shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      --radius: 10px;
-    }
+  --bg-light: #f4f6f8;
+  --bg-dark: #121212;
+  --text-light: #ffffff;
+  --text-dark: #000000;
+  --card-light: #ffffff;
+  --card-dark: #1e1e1e;
+  --primary-color: #007bff;
+  --hover-color: #0056b3;
+  --radius: 10px;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  --card-bg: var(--card-light);
+}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+body.dark {
+  --card-bg: var(--card-dark);
+}
 
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: var(--bg-light);
-      color: var(--text-dark);
-      padding: 40px 20px;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    .group-form {
-      background-color: var(--card-bg);
-      padding: 30px;
-      border-radius: var(--radius);
-      max-width: 600px;
-      margin: auto;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+body {
+  font-family: "Segoe UI", sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding: 40px 20px;
+}
 
-    .group-form h2 {
-      text-align: center;
-      margin-bottom: 10px;
-      color: var(--primary-color);
-    }
+body.dark {
+  background-color: var(--bg-dark);
+  color: var(--text-light);
+}
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+.group-form {
+  background-color: var(--card-bg);
+  padding: 30px;
+  border-radius: var(--radius);
+  max-width: 600px;
+  margin: auto;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
 
-    .form-group label {
-      font-weight: bold;
-    }
+.group-form h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  color: var(--primary-color);
+}
 
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: var(--radius);
-      transition: border 0.3s;
-      background-color: #fff;
-      color: var(--text-dark);
-    }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-      border-color: var(--primary-color);
-      outline: none;
-    }
+.form-group label {
+  font-weight: bold;
+}
 
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      background: #fafafa;
-      border-radius: var(--radius);
-      border: 1px solid #ddd;
-    }
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  transition: border 0.3s, background-color 0.3s;
+  background-color: #fff;
+  color: var(--text-dark);
+}
 
-    .checkbox-group label {
-      font-weight: normal;
-      font-size: 15px;
-    }
+body.dark .form-group input,
+body.dark .form-group textarea,
+body.dark .form-group select {
+  background-color: #2a2a2a;
+  color: var(--text-light);
+  border: 1px solid #444;
+}
 
-    .submit-btn {
-      padding: 14px;
-      font-size: 16px;
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: var(--radius);
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
 
-    .submit-btn:hover {
-      background-color: var(--hover-color);
-    }
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: var(--radius);
+  border: 1px solid #ddd;
+}
+
+body.dark .checkbox-group {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+}
+
+.checkbox-group label {
+  font-weight: normal;
+  font-size: 15px;
+}
+
+.submit-btn {
+  padding: 14px;
+  font-size: 16px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: var(--hover-color);
+}
+
   </style>
 </head>
 <body>
@@ -237,6 +265,32 @@
         console.error("Create group failed:", err);
       });
     }
+
+       document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("theme-toggle");
+      const theme = localStorage.getItem("theme");
+
+      if (theme === "dark") {
+        document.body.classList.remove("light");
+        document.body.classList.add("dark");
+        toggle.checked = true;
+      } else {
+        document.body.classList.add("light");
+        toggle.checked = false;
+      }
+
+      toggle.addEventListener("change", () => {
+        if (toggle.checked) {
+          document.body.classList.remove("light");
+          document.body.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.body.classList.remove("dark");
+          document.body.classList.add("light");
+          localStorage.setItem("theme", "light");
+        }
+      });
+    });
 
     window.onload = function () {
       loadUsers();
