@@ -364,11 +364,11 @@ function authenticate(req, res, next) {
 }
 
 function authorize(req, res, next) {
-  if (req.session.user && req.session.user.email === req.params.email) {
+  if (req.session && req.session.user) {
     return next();
   }
-  res.status(403).send("Unauthorized");
-}
+  return res.status(401).json({ message: "Unauthorized" });
+} 
 
 // Server start
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
