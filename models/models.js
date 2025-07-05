@@ -14,14 +14,14 @@ const User = mongoose.model("User", userSchema, "user");
 const personSchema = new mongoose.Schema({
   groupName: String,
   groupDesc: String,
-  grouapCreatedBy: String,
+  groupCreatedBy: String,
   formFillingDate: String,
   numPersons: Number,
   users: {
     type: Map,
     of: Number
   },
-  totalAmount:Number
+  totalAmount:Number,
 });
 
 const Person = mongoose.model("Person", personSchema, "persons");

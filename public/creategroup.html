@@ -104,37 +104,6 @@
     .submit-btn:hover {
       background-color: var(--hover-color);
     }
-
-    @media (max-width: 768px) {
-      body {
-        padding: 20px 10px;
-      }
-
-      .group-form {
-        padding: 20px;
-      }
-
-      .submit-btn {
-        font-size: 15px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .group-form h2 {
-        font-size: 20px;
-      }
-
-      .form-group input,
-      .form-group textarea,
-      .form-group select {
-        font-size: 15px;
-      }
-
-      .submit-btn {
-        font-size: 14px;
-        padding: 12px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -151,7 +120,7 @@
       <label for="groupDesc">Group Description</label>
       <textarea id="groupDesc" name="groupDesc" rows="3" required></textarea>
     </div>
-    
+
     <div class="form-group">
       <label for="groupCreatedBy">Group Created By</label>
       <select id="groupCreatedBy" name="groupCreatedBy" required>
@@ -177,6 +146,7 @@
   </form>
 
   <script>
+    // ✅ Load checkbox user list
     async function loadUsers() {
       const container = document.getElementById("userCheckboxes");
       try {
@@ -194,7 +164,7 @@
         users.forEach(user => {
           const label = document.createElement("label");
           const name = user.name || user.email;
-          label.innerHTML = `<input type="checkbox" name="person" value="${user.name}"> ${name}`;
+          label.innerHTML = `<input type="checkbox" name="person" value="${name}"> ${name}`;
           container.appendChild(label);
         });
       } catch (error) {
@@ -203,6 +173,28 @@
       }
     }
 
+    // ✅ Load dropdown for "Group Created By"
+    async function loadGroupCreators() {
+      const dropdown = document.getElementById("groupCreatedBy");
+      dropdown.innerHTML = `<option value="">Select a person</option>`;
+      try {
+        const response = await fetch("/getusers");
+        const result = await response.json();
+        const users = result.users;
+
+        users.forEach(user => {
+          const name = user.name || user.email;
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          dropdown.appendChild(option);
+        });
+      } catch (error) {
+        console.error("Error loading group creators:", error);
+      }
+    }
+
+    // ✅ Submit the form
     function submitGroup(event) {
       event.preventDefault();
 
@@ -234,47 +226,23 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
-        .then(res => res.json())
-        .then(data => {
-          alert("Group created successfully!");
-          console.log(data);
-        })
-        .catch(err => {
-          alert("Error creating group.");
-          console.error(err);
-        });
-    }
-
-    async function loadUsersforGroupCreatedBy() {
-      const dropdown = document.getElementById("groupCreatedBy");
-      let userMap = {};
-
-      try {
-        const response = await fetch("/getusers");
-        const result = await response.json();
-        const users = result.users;
-
-        dropdown.innerHTML = `<option value="">Select a person</option>`;
-
-        users.forEach(user => {
-          userMap[user._id] = user;
-
-          const option = document.createElement("option");
-          option.value = user.name;
-          option.textContent = user.name || user.email;
-          dropdown.appendChild(option);
-        });
-
-      } catch (error) {
-        console.error("Error loading users:", error);
-      }
+      .then(res => res.json())
+      .then(data => {
+        alert("Group created successfully!");
+        console.log("Server response:", data);
+      })
+      .catch(err => {
+        alert("Error creating group.");
+        console.error("Create group failed:", err);
+      });
     }
 
     window.onload = function () {
       loadUsers();
-      loadUsersforGroupCreatedBy();
+      loadGroupCreators();
     };
   </script>
 
 </body>
 </html>
+  

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Group Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --primary-color: #1976d2;
+      --hover-color: #0d47a1;
+      --bg-light: #f4f6f9;
+      --white: #fff;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-light);
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--primary-color);
+      margin-bottom: 25px;
+      font-size: 2rem;
+    }
+
+    .group-info {
+      background-color: var(--white);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 0 auto 30px;
+      max-width: 800px;
+      box-shadow: var(--shadow);
+    }
+
+    .group-info p {
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      display: block;
+      margin: 0 auto 20px;
+      background-color: var(--primary-color);
+      color: var(--white);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--hover-color);
+    }
+
+    .expenses-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .expense-card {
+      background-color: var(--white);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    .expense-card:hover {
+      transform: scale(1.01);
+    }
+
+    .expense-card input,
+    .expense-card select {
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+      background: #fefefe;
+    }
+
+    .expense-card input[readonly],
+    .expense-card select[disabled] {
+      background-color: #f0f0f0;
+      cursor: not-allowed;
+    }
+
+    .expense-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .icon-btn {
+      background-color: var(--primary-color);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background-color: var(--hover-color);
+    }
+
+    @media (min-width: 768px) {
+      .expense-card {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .expense-card input,
+      .expense-card select {
+        flex: 1 1 18%;
+        margin: 0;
+      }
+
+      .expense-actions {
+        flex: 1 1 20%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Group Details</h2>
+  <div class="group-info" id="groupDetails">Loading...</div>
+
+  <button class="btn" onclick="addExpense()">➕ Add Expense</button>
+
+  <div class="expenses-container" id="expensesContainer"></div>
+
+  <script>
+    const groupId = new URLSearchParams(window.location.search).get('id');
+    const groupDetailsDiv = document.getElementById("groupDetails");
+    const expensesContainer = document.getElementById("expensesContainer");
+    let users = [];
+
+    async function loadGroup() {
+      const res = await fetch("/getgroups");
+      const data = await res.json();
+      const group = data.personsData.find(g => g._id === groupId);
+
+      if (!group) {
+        groupDetailsDiv.innerHTML = "<p style='color:red;'>Group not found.</p>";
+        return;
+      }
+
+      const usersList = Object.entries(group.users)
+        .map(([name, amount]) => `<li><strong>${name}</strong>: ₹${amount.toFixed(2)}</li>`)
+        .join("");
+
+      groupDetailsDiv.innerHTML = `
+        <p><strong>Group Name:</strong> ${group.groupName}</p>
+        <p><strong>Created By:</strong> ${group.groupCreatedBy}</p>
+        <p><strong>Total Amount:</strong> ₹${group.totalAmount.toFixed(2)}</p>
+        <p><strong>Users:</strong></p>
+        <ul>${usersList}</ul>
+      `;
+    }
+
+    async function loadUsers() {
+      const res = await fetch("/getusers");
+      const data = await res.json();
+      users = data.users;
+    }
+
+    function getTodayDate() {
+      return new Date().toISOString().split("T")[0];
+    }
+
+    function addExpense() {
+      const userOptions = users.map(u => `<option value="${u.name}">${u.name}</option>`).join("");
+      const today = getTodayDate();
+
+      const card = document.createElement("div");
+      card.className = "expense-card";
+      card.innerHTML = `
+        <input type="text" class="title" placeholder="Expense Title" />
+        <select class="person">${userOptions}</select>
+        <input type="text" class="date" value="${today}" readonly />
+        <input type="number" class="amount" placeholder="Amount" min="0" />
+        <div class="expense-actions">
+          <button class="icon-btn save-btn">💾 Save</button>
+          <button class="icon-btn edit-btn" style="display:none;">✏️</button>
+          <button class="icon-btn delete-btn" style="display:none;">🗑️</button>
+        </div>
+      `;
+
+      // Save
+      card.querySelector(".save-btn").addEventListener("click", async () => {
+        const titleInput = card.querySelector(".title");
+        const personSelect = card.querySelector(".person");
+        const amountInput = card.querySelector(".amount");
+
+        const title = titleInput.value.trim();
+        const person = personSelect.value;
+        const amount = parseFloat(amountInput.value);
+
+        if (!title || isNaN(amount) || amount <= 0) {
+          alert("Please enter valid title and amount.");
+          return;
+        }
+
+        await fetch("/updateExpense", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ groupId, title, person, amount })
+        });
+
+        // Lock inputs
+        titleInput.readOnly = true;
+        personSelect.disabled = true;
+        amountInput.readOnly = true;
+
+        card.querySelector(".save-btn").style.display = "none";
+        card.querySelector(".edit-btn").style.display = "inline-block";
+        card.querySelector(".delete-btn").style.display = "inline-block";
+
+        loadGroup();
+        alert("Saved successfully!");
+      });
+
+      // Edit
+      card.querySelector(".edit-btn").addEventListener("click", () => {
+        const titleInput = card.querySelector(".title");
+        const personSelect = card.querySelector(".person");
+        const amountInput = card.querySelector(".amount");
+        card.querySelector(".date").value = getTodayDate();
+
+        titleInput.readOnly = false;
+        personSelect.disabled = false;
+        amountInput.readOnly = false;
+
+        card.querySelector(".save-btn").style.display = "inline-block";
+        card.querySelector(".edit-btn").style.display = "none";
+      });
+
+      // Delete
+      card.querySelector(".delete-btn").addEventListener("click", () => {
+        expensesContainer.removeChild(card);
+      });
+
+      expensesContainer.appendChild(card);
+    }
+
+    window.onload = async () => {
+      await loadUsers();
+      await loadGroup();
+    };
+  </script>
+
+</body>
+</html>

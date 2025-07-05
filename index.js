@@ -141,15 +141,14 @@ app.post("/creategroup", async (req, res) => {
       groupCreatedBy,
       formFillingDate,
       numPersons,
-      users // This is a colon-separated string like "admin:admin1:Ramu"
+      users // Expects colon-separated string like "admin:admin1:Ramu"
     } = req.body;
-
-    // Convert "admin:admin1:Ramu" to { admin: 0, admin1: 0, Ramu: 0 }
+    console.log(req.body);
     const userObj = {};
     users.split(":").forEach(name => {
       userObj[name] = 0;
     });
-    const totalAmount=0;
+
     const newGroup = new Person({
       groupName,
       groupDesc,
@@ -157,7 +156,7 @@ app.post("/creategroup", async (req, res) => {
       formFillingDate,
       numPersons,
       users: userObj,
-      totalAmount
+      totalAmount: 0,
     });
 
     await newGroup.save();
@@ -175,6 +174,7 @@ app.post("/creategroup", async (req, res) => {
 app.get("/getgroups", async (req, res) => {
   try {
     const personsData = await Person.find(); // Replace with your model    
+    console.log("HAHAHAH");
     res.json({ success: true, personsData });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch groups." });
