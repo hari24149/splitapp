@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const path = require("path");
-const { User, Person } = require("./models/models");
+const { User, Person, SplitPerson } = require("./models/models");
 
 dotenv.config();
 
@@ -38,7 +38,7 @@ app.use(session({
     collectionName: "sessions",
   }),
   cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 hours
-    // cookie: { maxAge: 1000 * 60 * 60 * 24 * 2 }  // 2days
+  // cookie: { maxAge: 1000 * 60 * 60 * 24 * 2 }  // 2days
 }));
 
 app.get("/", (req, res) => {
@@ -174,10 +174,73 @@ app.post("/creategroup", async (req, res) => {
 app.get("/getgroups", async (req, res) => {
   try {
     const personsData = await Person.find(); // Replace with your model    
-    console.log("HAHAHAH");
+    // console.log("HAHAHAH");
     res.json({ success: true, personsData });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch groups." });
+  }
+});
+
+app.put('/updateExpense', async (req, res) => {
+  try {
+    const { groupId, title, person, amount } = req.body;
+
+    const existingExpense = await SplitPerson.findOne({ groupId, person, title });
+
+    const group = await Person.findById(groupId);
+    if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const prevAmount = group.users[person] || 0;
+    const newAmount = parseFloat(amount);
+    console.log(newAmount);
+    if (existingExpense) 
+    {
+      // Save old amount before updating
+      const oldAmount = existingExpense.amount;
+
+      // Update fields
+      existingExpense.amount = newAmount;
+      existingExpense.title = title;
+      existingExpense.date = new Date().toISOString().split("T")[0];
+      await existingExpense.save();
+
+      // Update Person schema
+      // group.users[person] = newAmount;
+      group.users.set(person, group.users[person]+newAmount);
+      group.totalAmount = group.totalAmount - oldAmount + newAmount;
+    }
+    else {
+      // New expense
+      const newExpense = new SplitPerson({
+        groupId,
+        groupName: group.groupName,
+        title,
+        person,
+        amount: newAmount,
+        date: new Date().toISOString().split("T")[0]
+      });
+      await newExpense.save();
+
+      // group.users[person] = newAmount;
+      group.users.set(person, group.users[person]+newAmount);
+      group.totalAmount += newAmount;
+    }
+    console.log(group);
+    await group.save();
+
+    res.json({ message: 'Expense processed successfully.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error.' });
+  }
+});
+
+app.get("/expenses/:groupId", async (req, res) => {
+  try {
+    const expenses = await SplitPerson.find({ groupId: req.params.groupId });
+    res.json(expenses);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load expenses" });
   }
 });
 
