@@ -26,24 +26,25 @@ const personSchema = new mongoose.Schema({
 
 const Person = mongoose.model("Person", personSchema, "persons");
 
-
-const splitPersonSchema = new mongoose.Schema({
-  groupId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Person' },
-  groupName: String,
-  title: String,
-  person: String,
-  amount: Number,
-  date: {
-    type: String, // Format: 'YYYY-MM-DD'
-    default: () => new Date().toISOString().split("T")[0]
-  }
+const userSpendingSchema = new mongoose.Schema({
+  personId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Person",
+    required: true
+  },
+  username: { type: String, required: true },
+  title: { type: String, required: true },
+  date: { type: String, required: true }, // store in "YYYY-MM-DD" format
+  amount: { type: Number, required: true }
 });
 
-const SplitPerson =  mongoose.model('SplitPerson', splitPersonSchema);
+const Spending = mongoose.model("UserSpending", userSpendingSchema, "user_spendings");
+
+
 
 // ✅ Export both models as properties
 module.exports = {
   User,
   Person,
-  SplitPerson
+  Spending
 };

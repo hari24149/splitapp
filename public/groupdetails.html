@@ -1,50 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <title>Group Details</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root {
-      --primary-color: #1976d2;
-      --hover-color: #0d47a1;
-      --bg-light: #f4f6f9;
-      --white: #fff;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: var(--bg-light);
-      margin: 0;
-      padding: 20px;
+      padding: 40px;
+      background: #f5f7fa;
       color: #333;
     }
 
-    h2 {
-      text-align: center;
-      color: var(--primary-color);
-      margin-bottom: 25px;
-      font-size: 2rem;
-    }
-
-    .group-info {
-      background-color: var(--white);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 0 auto 30px;
+    .container {
       max-width: 800px;
-      box-shadow: var(--shadow);
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
-    .group-info p {
-      margin: 8px 0;
+    h2, h3 {
+      color: #1976d2;
+    }
+
+    p {
       font-size: 16px;
+      margin: 8px 0;
     }
 
     ul {
@@ -52,280 +34,265 @@
       margin-top: 10px;
     }
 
-    .btn {
+    li {
+      margin: 6px 0;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .value {
+      color: #222;
+    }
+
+    form {
+      margin-top: 20px;
+    }
+
+    label {
       display: block;
-      margin: 0 auto 20px;
-      background-color: var(--primary-color);
-      color: var(--white);
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: var(--hover-color);
-    }
-
-    .expenses-container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .expense-card {
-      background-color: var(--white);
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: transform 0.2s ease;
-    }
-
-    .expense-card:hover {
-      transform: scale(1.01);
-    }
-
-    .expense-card input,
-    .expense-card select {
-      font-size: 14px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      width: 100%;
-      background: #fefefe;
-    }
-
-    .expense-card input[readonly],
-    .expense-card select[disabled] {
-      background-color: #f0f0f0;
-      cursor: not-allowed;
-    }
-
-    .expense-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
       margin-top: 10px;
     }
 
-    .icon-btn {
-      background-color: var(--primary-color);
-      border: none;
-      color: white;
-      padding: 8px 14px;
+    input, select {
+      padding: 6px;
+      width: 100%;
+      margin-top: 5px;
+      border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 14px;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background 0.2s ease;
     }
 
-    .icon-btn:hover {
-      background-color: var(--hover-color);
+    button:hover {
+      background: #1565c0;
     }
 
-    @media (min-width: 768px) {
-      .expense-card {
-        flex-direction: row;
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: space-between;
-      }
+    .spending-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
 
-      .expense-card input,
-      .expense-card select {
-        flex: 1 1 18%;
-        margin: 0;
-      }
+    .spending-table th, .spending-table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
 
-      .expense-actions {
-        flex: 1 1 20%;
-        justify-content: flex-end;
+    .spending-table th {
+      background: #1976d2;
+      color: white;
+    }
+
+    .actions button {
+      margin-right: 6px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
       }
     }
   </style>
 </head>
-
 <body>
-  <h2>Group Details</h2>
-  <div class="group-info" id="groupDetails">Loading...</div>
-  <button class="btn" onclick="addExpense()">➕ Add Expense</button>
-  <div class="expenses-container" id="expensesContainer"></div>
+
+  <div class="container">
+    <h2 id="groupName">Group Name</h2>
+    <p><span class="label">Description:</span> <span class="value" id="groupDesc"></span></p>
+    <p><span class="label">Created By:</span> <span class="value" id="groupCreatedBy"></span></p>
+    <p><span class="label">Form Filling Date:</span> <span class="value" id="formFillingDate"></span></p>
+    <p><span class="label">Number of Persons:</span> <span class="value" id="numPersons"></span></p>
+    <p><span class="label">Total Amount:</span> ₹<span class="value" id="totalAmount"></span></p>
+
+    <h3>Users and Their Contributions</h3>
+    <ul id="userList"></ul>
+
+    <h3 id="formTitle">Add a Spending</h3>
+    <form id="spendingForm">
+      <label for="spendingUser">User:</label>
+      <select id="spendingUser"></select>
+
+      <label for="spendingTitle">Title:</label>
+      <input type="text" id="spendingTitle" placeholder="e.g. Food, Room Rent" />
+
+      <label for="spendingDate">Date:</label>
+      <input type="date" id="spendingDate" />
+
+      <label for="spendingAmount">Amount:</label>
+      <input type="number" id="spendingAmount" placeholder="Enter amount" />
+
+      <button type="submit" id="submitBtn">Add Spending</button>
+      <button type="button" id="cancelEdit" style="display:none;">Cancel Edit</button>
+    </form>
+
+    <h3>All Spendings</h3>
+    <table class="spending-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Title</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="spendingList"></tbody>
+    </table>
+  </div>
 
   <script>
-    const groupId = new URLSearchParams(window.location.search).get('id');
-    const groupDetailsDiv = document.getElementById("groupDetails");
-    const expensesContainer = document.getElementById("expensesContainer");
-    let groupUsers = [];
+    const personId = new URLSearchParams(window.location.search).get("id");
+    let editingId = null;
 
-    async function loadGroup() {
-      const res = await fetch("/getgroups");
+    async function fetchPerson() {
+      const res = await fetch(`/getgroup/${personId}`);
       const data = await res.json();
-      const group = data.personsData.find(g => g._id === groupId);
-      if (!group) {
-        groupDetailsDiv.innerHTML = "<p style='color:red;'>Group not found.</p>";
+
+      document.getElementById("groupName").textContent = data.groupName;
+      document.getElementById("groupDesc").textContent = data.groupDesc;
+      document.getElementById("groupCreatedBy").textContent = data.groupCreatedBy;
+      document.getElementById("formFillingDate").textContent = data.formFillingDate;
+      document.getElementById("numPersons").textContent = data.numPersons;
+      document.getElementById("totalAmount").textContent = data.totalAmount.toFixed(2);
+
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+
+      const creator = data.groupCreatedBy;
+      const creatorAmt = data.users[creator] || 0;
+      const creatorLi = document.createElement("li");
+      creatorLi.innerHTML = `<strong>${creator} (Created By):</strong> ₹${creatorAmt.toFixed(2)}`;
+      userList.appendChild(creatorLi);
+
+      for (let [name, amount] of Object.entries(data.users)) {
+        if (name === creator) continue;
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${name}:</strong> ₹${amount.toFixed(2)}`;
+        userList.appendChild(li);
+      }
+
+      const select = document.getElementById("spendingUser");
+      select.innerHTML = "";
+      Object.keys(data.users).forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+    }
+
+    async function loadSpendings() {
+      try {
+        const res = await fetch(`/getspendings/${personId}`);
+        const spendings = await res.json();
+
+        if (!Array.isArray(spendings)) {
+          console.error("Expected array but got:", spendings);
+          return;
+        }
+
+        const container = document.getElementById("spendingList");
+        container.innerHTML = "";
+
+        spendings.forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${item.username}</td>
+            <td>${item.title}</td>
+            <td>${item.date}</td>
+            <td>₹${item.amount.toFixed(2)}</td>
+            <td class="actions">
+              <button onclick="editSpending('${item._id}', '${item.username}', '${item.title}', '${item.date}', ${item.amount})">Edit</button>
+              <button onclick="deleteSpending('${item._id}')">Delete</button>
+            </td>
+          `;
+          container.appendChild(tr);
+        });
+
+        await fetchPerson(); // Refresh group totals after load
+      } catch (err) {
+        console.error("Error loading spendings:", err);
+      }
+    }
+
+    function editSpending(id, username, title, date, amount) {
+      editingId = id;
+      document.getElementById("spendingUser").value = username;
+      document.getElementById("spendingTitle").value = title;
+      document.getElementById("spendingDate").value = date;
+      document.getElementById("spendingAmount").value = amount;
+      document.getElementById("formTitle").textContent = "Edit Spending";
+      document.getElementById("submitBtn").textContent = "Update Spending";
+      document.getElementById("cancelEdit").style.display = "inline-block";
+    }
+
+    document.getElementById("cancelEdit").addEventListener("click", resetForm);
+
+    function resetForm() {
+      editingId = null;
+      document.getElementById("spendingForm").reset();
+      document.getElementById("formTitle").textContent = "Add a Spending";
+      document.getElementById("submitBtn").textContent = "Add Spending";
+      document.getElementById("cancelEdit").style.display = "none";
+      document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
+    }
+
+    document.getElementById("spendingForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        personId,
+        username: document.getElementById("spendingUser").value,
+        title: document.getElementById("spendingTitle").value,
+        date: document.getElementById("spendingDate").value,
+        amount: parseFloat(document.getElementById("spendingAmount").value)
+      };
+
+      if (!payload.username || !payload.title || !payload.date || isNaN(payload.amount)) {
+        alert("Please fill all fields correctly.");
         return;
       }
 
-      groupUsers = Object.keys(group.users);
-
-      const usersList = Object.entries(group.users)
-        .map(([name, amount]) => `<li><strong>${name}</strong>: ₹${amount.toFixed(2)}</li>`)
-        .join("");
-
-      groupDetailsDiv.innerHTML = `
-        <p><strong>Group Name:</strong> ${group.groupName}</p>
-        <p><strong>Created By:</strong> ${group.groupCreatedBy}</p>
-        <p><strong>Total Amount:</strong> ₹${group.totalAmount.toFixed(2)}</p>
-        <p><strong>Users:</strong></p>
-        <ul>${usersList}</ul>
-      `;
-    }
-
-    function getTodayDate() {
-      return new Date().toISOString().split("T")[0];
-    }
-
-    function createCard({ title = "", person = "", date = getTodayDate(), amount = "", editable = true, _id = null }) {
-      const userOptions = groupUsers.map(name =>
-        `<option value="${name}" ${name === person ? 'selected' : ''}>${name}</option>`
-      ).join("");
-
-      const card = document.createElement("div");
-      card.className = "expense-card";
-      if (_id) card.dataset.existingId = _id;
-
-      card.dataset.originalTitle = title;
-      card.dataset.originalPerson = person;
-      card.dataset.originalAmount = amount;
-
-      card.innerHTML = `
-        <input type="text" class="title" placeholder="Expense Title" value="${title}" ${editable ? "" : "readonly"} />
-        <select class="person" ${editable ? "" : "disabled"}>${userOptions}</select>
-        <input type="text" class="date" value="${date}" readonly />
-        <input type="number" class="amount" placeholder="Amount" min="0" value="${amount}" ${editable ? "" : "readonly"} />
-        <div class="expense-actions">
-          <button class="icon-btn save-btn" style="${editable ? "" : "display:none"}">💾 Save</button>
-          <button class="icon-btn edit-btn" style="${editable ? "display:none" : ""}">✏️</button>
-          <button class="icon-btn delete-btn" style="${editable ? "display:none" : ""}">🗑️</button>
-        </div>
-      `;
-
-      const titleInput = card.querySelector(".title");
-      const personSelect = card.querySelector(".person");
-      const amountInput = card.querySelector(".amount");
-
-      card.querySelector(".save-btn").addEventListener("click", async () => {
-        const newTitle = titleInput.value.trim();
-        const newPerson = personSelect.value;
-        const newAmount = parseFloat(amountInput.value);
-        const isEdit = card.dataset.existingId;
-
-        if (!newTitle || isNaN(newAmount) || newAmount <= 0) {
-          alert("Please enter valid title and amount.");
-          return;
-        }
-
-        if (
-          isEdit &&
-          newTitle === card.dataset.originalTitle &&
-          newPerson === card.dataset.originalPerson &&
-          newAmount.toString() === card.dataset.originalAmount
-        ) {
-          alert("No changes done.");
-          return;
-        }
-
-        const res = await fetch(`/expenses/${groupId}`);
-        const expenses = await res.json();
-
-        const duplicate = expenses.find(exp =>
-          exp.person === newPerson &&
-          exp.title === newTitle &&
-          (!isEdit || exp._id !== isEdit)
-        );
-
-        if (!isEdit && duplicate) {
-          alert("An expense with the same title already exists for this person.");
-          return;
-        }
-
-        // Save or update
-        await fetch("/updateExpense", {
+      if (editingId) {
+        await fetch(`/updatespending/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            groupId,
-            title: newTitle,
-            person: newPerson,
-            amount: newAmount,
-            expenseId: isEdit || null
-          })
+          body: JSON.stringify(payload)
         });
-
-        titleInput.readOnly = true;
-        personSelect.disabled = true;
-        amountInput.readOnly = true;
-
-        card.querySelector(".save-btn").style.display = "none";
-        card.querySelector(".edit-btn").style.display = "inline-block";
-        card.querySelector(".delete-btn").style.display = "inline-block";
-
-        card.dataset.originalTitle = newTitle;
-        card.dataset.originalPerson = newPerson;
-        card.dataset.originalAmount = newAmount.toString();
-
-        await loadGroup();
-        alert("Saved successfully!");
-      });
-
-      card.querySelector(".edit-btn").addEventListener("click", () => {
-        titleInput.readOnly = false;
-        personSelect.disabled = false;
-        amountInput.readOnly = false;
-
-        card.querySelector(".save-btn").style.display = "inline-block";
-        card.querySelector(".edit-btn").style.display = "none";
-      });
-
-      card.querySelector(".delete-btn").addEventListener("click", () => {
-        expensesContainer.removeChild(card);
-        // Optional: Add backend delete API call
-      });
-
-      expensesContainer.appendChild(card);
-    }
-
-    async function loadExpenses() {
-      const res = await fetch(`/expenses/${groupId}`);
-      const expenses = await res.json();
-
-      expenses.forEach(exp => {
-        createCard({
-          title: exp.title,
-          person: exp.person,
-          amount: exp.amount,
-          date: exp.date || getTodayDate(),
-          editable: false,
-          _id: exp._id
+      } else {
+        await fetch("/addspending", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
-      });
+      }
+
+      resetForm();
+      loadSpendings();
+    });
+
+    async function deleteSpending(id) {
+      if (confirm("Are you sure you want to delete this spending?")) {
+        await fetch(`/deletespending/${id}`, { method: "DELETE" });
+        loadSpendings();
+      }
     }
 
-    function addExpense() {
-      createCard({ editable: true });
-    }
-
-    window.onload = async () => {
-      await loadGroup();
-      await loadExpenses();
-    };
+    fetchPerson();
+    loadSpendings();
+    document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
   </script>
 </body>
-
 </html>

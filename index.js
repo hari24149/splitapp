@@ -6,12 +6,12 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const path = require("path");
-const { User, Person, SplitPerson } = require("./models/models");
-
+const { User, Person, Spending } = require("./models/models");
+const statusMonitor = require('express-status-monitor');
 dotenv.config();
 
 const app = express();
-
+app.use(statusMonitor());
 // Middleware
 app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -37,8 +37,8 @@ app.use(session({
     mongoUrl: process.env.MONGO_URI,
     collectionName: "sessions",
   }),
-  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 hours
-  // cookie: { maxAge: 1000 * 60 * 60 * 24 * 2 }  // 2days
+  // cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 hours
+  cookie: { maxAge: 1000 * 60 * 60 * 24 * 2 }  // 2days
 }));
 
 app.get("/", (req, res) => {
@@ -84,7 +84,50 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+app.get('/status', statusMonitor().pageRoute);
+app.post("/change-password",authorize,authenticate, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.session?.user?._id;
 
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.get("/getUserDetails",authenticate,authorize, async (req, res) => {
+  const userId = req.session?.user?._id;
+
+  if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+  const user = await User.findById(userId).select("name email");
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  res.json(user);
+});
 app.post("/signup", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -109,6 +152,28 @@ app.post("/signup", async (req, res) => {
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+app.post("/delete-account",authorize,authenticate,async (req, res) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.session?.user?._id);
+    if (!user) {
+      return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ success: false, message: "Incorrect password" });
+    }
+
+    await User.findByIdAndDelete(user._id);
+    req.session.destroy(() => {
+      res.status(200).json({ success: true, message: "Account deleted successfully" });
+    });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
 app.get("/getusers", authenticate, async (req, res) => {
@@ -168,8 +233,6 @@ app.post("/creategroup", async (req, res) => {
   }
 });
 
-
-
 // Example in Express.js
 app.get("/getgroups", async (req, res) => {
   try {
@@ -181,60 +244,114 @@ app.get("/getgroups", async (req, res) => {
   }
 });
 
-app.put('/updateExpense', async (req, res) => {
+app.get("/getgroup/:id", async (req, res) => {
   try {
-    const { groupId, title, person, amount } = req.body;
-    const existingExpense = await SplitPerson.findOne({ groupId, person, title });
-    const group = await Person.findById(groupId);
-    if (!group) return res.status(404).json({ error: 'Group not found' });
+    const person = await Person.findById(req.params.id);
+    if (!person) return res.status(404).json({ error: "Person not found" });
+    res.json(person);
+  } catch (err) {
+    res.status(500).json({ error: "Error fetching person" });
+  }
+});
 
-    const newAmount = parseFloat(amount);
-    const prevAmount = group.users.get(person) || 0;
+// POST /addspending
+app.post("/addspending", async (req, res) => {
+  const { personId, username, title, date, amount } = req.body;
+  console.log("Hello");
+  if (!personId || !username || !title || !date || typeof amount !== "number") {
+    return res.status(400).json({ error: "Missing or invalid fields" });
+  }
 
-    if (existingExpense) {
-      const oldAmount = existingExpense.amount;
+  try {
+    const spending = await Spending.create({ personId, username, title, date, amount });
 
-      // Update existing expense
-      existingExpense.amount = newAmount;
-      existingExpense.title = title;
-      existingExpense.date = new Date().toISOString().split("T")[0];
-      await existingExpense.save();
+    const person = await Person.findById(personId);
 
-      // Update group's user map
-      group.users.set(person, prevAmount - oldAmount + newAmount);
-      group.totalAmount = group.totalAmount - oldAmount + newAmount;
-    } else {
-      // New expense
-      const newExpense = new SplitPerson({
-        groupId,
-        groupName: group.groupName,
-        title,
-        person,
-        amount: newAmount,
-        date: new Date().toISOString().split("T")[0]
-      });
-      await newExpense.save();
-
-      group.users.set(person, prevAmount + newAmount);
-      group.totalAmount += newAmount;
+    if (!person) {
+      return res.status(404).json({ error: "Group not found" });
     }
 
-    await group.save();
+    person.totalAmount = (person.totalAmount || 0) + amount;
 
-    res.json({ message: 'Expense processed successfully.' });
+    const currentAmount = person.users.get(username) || 0;
+    person.users.set(username, currentAmount + amount);
+
+    await person.save();
+
+    res.status(201).json(spending);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error.' });
+    console.error("Error in /addspending:", err);
+    res.status(500).json({ error: "Failed to add spending", details: err.message });
+  }
+});
+
+app.put("/updatespending/:id", async (req, res) => {
+  const { username, title, date, amount, personId } = req.body;
+
+  try {
+    const spending = await Spending.findById(req.params.id);
+    if (!spending) return res.status(404).json({ error: "Spending not found" });
+
+    const person = await Person.findById(personId);
+
+    // Rollback old values
+    person.totalAmount -= spending.amount;
+    const oldUserAmt = person.users.get(spending.username) || 0;
+    person.users.set(spending.username, oldUserAmt - spending.amount);
+
+    // Apply new values
+    person.totalAmount += amount;
+    const newUserAmt = person.users.get(username) || 0;
+    person.users.set(username, newUserAmt + amount);
+
+    // Update spending document
+    spending.username = username;
+    spending.title = title;
+    spending.date = date;
+    spending.amount = amount;
+    await spending.save();
+
+    await person.save();
+
+    res.status(200).json(spending);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update spending", details: err.message });
   }
 });
 
 
-app.get("/expenses/:groupId", async (req, res) => {
+// DELETE /deletespending/:id
+app.delete("/deletespending/:id", async (req, res) => {
   try {
-    const expenses = await SplitPerson.find({ groupId: req.params.groupId });
-    res.json(expenses);
+    const spending = await Spending.findByIdAndDelete(req.params.id);
+    if (!spending) return res.status(404).json({ error: "Spending not found" });
+
+    const person = await Person.findById(spending.personId);
+
+    // Deduct from totalAmount
+    person.totalAmount -= spending.amount;
+
+    // Deduct from user's amount
+    const oldAmt = person.users.get(spending.username) || 0;
+    person.users.set(spending.username, oldAmt - spending.amount);
+
+    await person.save();
+
+    res.status(200).json({ message: "Spending deleted" });
   } catch (err) {
-    res.status(500).json({ message: "Failed to load expenses" });
+    res.status(500).json({ error: "Failed to delete spending", details: err.message });
+  }
+});
+
+
+// 📄 Get all spendings for a personId (group)
+app.get("/getspendings/:personId", async (req, res) => {
+  try {
+    console.log("get method",req.params.personId);
+    const spendings = await Spending.find({ personId: req.params.personId });
+    res.json(spendings);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch spendings" });
   }
 });
 
