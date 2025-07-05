@@ -184,32 +184,26 @@ app.get("/getgroups", async (req, res) => {
 app.put('/updateExpense', async (req, res) => {
   try {
     const { groupId, title, person, amount } = req.body;
-
     const existingExpense = await SplitPerson.findOne({ groupId, person, title });
-
     const group = await Person.findById(groupId);
     if (!group) return res.status(404).json({ error: 'Group not found' });
 
-    const prevAmount = group.users[person] || 0;
     const newAmount = parseFloat(amount);
-    console.log(newAmount);
-    if (existingExpense) 
-    {
-      // Save old amount before updating
+    const prevAmount = group.users.get(person) || 0;
+
+    if (existingExpense) {
       const oldAmount = existingExpense.amount;
 
-      // Update fields
+      // Update existing expense
       existingExpense.amount = newAmount;
       existingExpense.title = title;
       existingExpense.date = new Date().toISOString().split("T")[0];
       await existingExpense.save();
 
-      // Update Person schema
-      // group.users[person] = newAmount;
-      group.users.set(person, group.users[person]+newAmount);
+      // Update group's user map
+      group.users.set(person, prevAmount - oldAmount + newAmount);
       group.totalAmount = group.totalAmount - oldAmount + newAmount;
-    }
-    else {
+    } else {
       // New expense
       const newExpense = new SplitPerson({
         groupId,
@@ -221,11 +215,10 @@ app.put('/updateExpense', async (req, res) => {
       });
       await newExpense.save();
 
-      // group.users[person] = newAmount;
-      group.users.set(person, group.users[person]+newAmount);
+      group.users.set(person, prevAmount + newAmount);
       group.totalAmount += newAmount;
     }
-    console.log(group);
+
     await group.save();
 
     res.json({ message: 'Expense processed successfully.' });
@@ -234,6 +227,7 @@ app.put('/updateExpense', async (req, res) => {
     res.status(500).json({ error: 'Server error.' });
   }
 });
+
 
 app.get("/expenses/:groupId", async (req, res) => {
   try {

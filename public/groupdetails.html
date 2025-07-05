@@ -154,7 +154,6 @@
 <body>
   <h2>Group Details</h2>
   <div class="group-info" id="groupDetails">Loading...</div>
-
   <button class="btn" onclick="addExpense()">➕ Add Expense</button>
   <div class="expenses-container" id="expensesContainer"></div>
 
@@ -168,7 +167,6 @@
       const res = await fetch("/getgroups");
       const data = await res.json();
       const group = data.personsData.find(g => g._id === groupId);
-
       if (!group) {
         groupDetailsDiv.innerHTML = "<p style='color:red;'>Group not found.</p>";
         return;
@@ -223,34 +221,32 @@
       const amountInput = card.querySelector(".amount");
 
       card.querySelector(".save-btn").addEventListener("click", async () => {
-        const title = titleInput.value.trim();
-        const person = personSelect.value;
-        const amount = parseFloat(amountInput.value);
+        const newTitle = titleInput.value.trim();
+        const newPerson = personSelect.value;
+        const newAmount = parseFloat(amountInput.value);
         const isEdit = card.dataset.existingId;
 
-        if (!title || isNaN(amount) || amount <= 0) {
+        if (!newTitle || isNaN(newAmount) || newAmount <= 0) {
           alert("Please enter valid title and amount.");
           return;
         }
 
-        // No changes check
         if (
           isEdit &&
-          title === card.dataset.originalTitle &&
-          person === card.dataset.originalPerson &&
-          amount.toString() === card.dataset.originalAmount
+          newTitle === card.dataset.originalTitle &&
+          newPerson === card.dataset.originalPerson &&
+          newAmount.toString() === card.dataset.originalAmount
         ) {
           alert("No changes done.");
           return;
         }
 
-        // Fetch all expenses to check for duplicates
         const res = await fetch(`/expenses/${groupId}`);
         const expenses = await res.json();
 
         const duplicate = expenses.find(exp =>
-          exp.person === person &&
-          exp.title === title &&
+          exp.person === newPerson &&
+          exp.title === newTitle &&
           (!isEdit || exp._id !== isEdit)
         );
 
@@ -259,20 +255,19 @@
           return;
         }
 
-        // Save request
+        // Save or update
         await fetch("/updateExpense", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             groupId,
-            title,
-            person,
-            amount,
+            title: newTitle,
+            person: newPerson,
+            amount: newAmount,
             expenseId: isEdit || null
           })
         });
 
-        // UI update
         titleInput.readOnly = true;
         personSelect.disabled = true;
         amountInput.readOnly = true;
@@ -281,10 +276,9 @@
         card.querySelector(".edit-btn").style.display = "inline-block";
         card.querySelector(".delete-btn").style.display = "inline-block";
 
-        // Update dataset
-        card.dataset.originalTitle = title;
-        card.dataset.originalPerson = person;
-        card.dataset.originalAmount = amount.toString();
+        card.dataset.originalTitle = newTitle;
+        card.dataset.originalPerson = newPerson;
+        card.dataset.originalAmount = newAmount.toString();
 
         await loadGroup();
         alert("Saved successfully!");
@@ -301,7 +295,7 @@
 
       card.querySelector(".delete-btn").addEventListener("click", () => {
         expensesContainer.removeChild(card);
-        // You can also call your delete API here if needed
+        // Optional: Add backend delete API call
       });
 
       expensesContainer.appendChild(card);
