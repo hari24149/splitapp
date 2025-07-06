@@ -355,6 +355,20 @@ app.get("/getspendings/:personId", async (req, res) => {
   }
 });
 
+app.post("/deletegroup", authorize, authenticate, async (req, res) => {
+  const { groupId, password } = req.body;
+  const user = await User.findById(req.session?.user?._id);
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return res.status(401).json({ success: false, message: "Incorrect password" });
+
+  await Person.findByIdAndDelete(groupId);
+  await Spending.deleteMany({ personId: groupId }); // Optional: clean up related spendings
+
+  res.json({ success: true });
+});
+
+
 // Protected middleware
 function authenticate(req, res, next) {
   if (req.session.user) {

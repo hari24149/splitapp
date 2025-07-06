@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Group Details</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 40px;
+      background: #f5f7fa;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2, h3 {
+      color: #1976d2;
+    }
+
+    .label {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .value {
+      color: #222;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    .spending-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .spending-table th,
+    .spending-table td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .spending-table th {
+      background-color: #1976d2;
+      color: white;
+    }
+
+    .actions button {
+      margin-right: 5px;
+    }
+
+    .btn-primary {
+      background-color: #1976d2;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 20px;
+    }
+
+    .btn-primary:hover {
+      background-color: #1256ad;
+    }
+    .btn-delete {
+      background-color: #1976d2;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 20px;
+    }
+
+    .btn-delete:hover {
+      background-color: red;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      width: 90%;
+      max-width: 500px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal h3 {
+      margin-top: 0;
+      color: #1976d2;
+    }
+
+    .modal label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    .modal input {
+      padding: 10px;
+      width: 100%;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .modal button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .modal .cancel {
+      background:red;
+      margin-left: 10px;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="groupName">Group Name</h2>
+    <p><span class="label">Description:</span> <span class="value" id="groupDesc"></span></p>
+    <p><span class="label">Created By:</span> <span class="value" id="groupCreatedBy"></span></p>
+    <p><span class="label">Form Filling Date:</span> <span class="value" id="formFillingDate"></span></p>
+    <p><span class="label">Number of Persons:</span> <span class="value" id="numPersons"></span></p>
+    <p><span class="label">Total Amount:</span> ₹<span class="value" id="totalAmount"></span></p>
+
+    <h3>Users and Their Contributions</h3>
+    <ul id="userList"></ul>
+
+    <button class="btn-primary" onclick="openModal()">Add Expense</button>
+
+    <h3>All Spendings</h3>
+    <table class="spending-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Title</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="spendingList"></tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h3 id="formTitle">Add a Spending</h3>
+      <form id="spendingForm">
+        <label for="spendingTitle">Title:</label>
+        <input type="text" id="spendingTitle" placeholder="e.g. Food, Rent" required />
+
+        <label for="spendingDate">Date:</label>
+        <input type="date" id="spendingDate" required />
+
+        <label for="spendingAmount">Amount:</label>
+        <input type="number" id="spendingAmount" placeholder="Enter amount" required />
+
+        <button type="submit" id="submitBtn">Add Spending</button>
+        <button type="button" class="cancel" onclick="closeModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const personId = new URLSearchParams(location.search).get("id");
+    let editingId = null;
+    let currentUser = "";
+    let groupCreator = "";
+
+    async function getCurrentUser() {
+      const res = await fetch("/getUserDetails");
+      const user = await res.json();
+      currentUser = user.name;
+    }
+
+    async function fetchPerson() {
+      const res = await fetch(`/getgroup/${personId}`);
+      const data = await res.json();
+      groupCreator = data.groupCreatedBy;
+
+      document.getElementById("groupName").textContent = data.groupName;
+      document.getElementById("groupDesc").textContent = data.groupDesc;
+      document.getElementById("groupCreatedBy").textContent = data.groupCreatedBy;
+      document.getElementById("formFillingDate").textContent = data.formFillingDate;
+      document.getElementById("numPersons").textContent = data.numPersons;
+      document.getElementById("totalAmount").textContent = data.totalAmount.toFixed(2);
+
+      const userList = document.getElementById("userList");
+      userList.innerHTML = "";
+      for (const [name, amount] of Object.entries(data.users)) {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${name}${name === groupCreator ? " (Created By)" : ""}:</strong> ₹${amount.toFixed(2)}`;
+        userList.appendChild(li);
+      }
+    }
+
+    async function loadSpendings() {
+      const res = await fetch(`/getspendings/${personId}`);
+      const spendings = await res.json();
+      const container = document.getElementById("spendingList");
+      container.innerHTML = "";
+
+      spendings.forEach(item => {
+        const tr = document.createElement("tr");
+        const isUserRecord = item.username === currentUser;
+        tr.innerHTML = `
+          <td>${item.username}</td>
+          <td>${item.title}</td>
+          <td>${item.date}</td>
+          <td>₹${item.amount.toFixed(2)}</td>
+          <td class="actions">
+            ${isUserRecord ? `
+              <button class="btn-primary" onclick="editSpending('${item._id}', '${item.title}', '${item.date}', ${item.amount})">Edit</button>
+              <button  class="btn-delete"  onclick="deleteSpending('${item._id}')">Delete</button>
+            ` : `<span style="color:#aaa;">NO ACCESS</span>`}
+          </td>
+        `;
+        container.appendChild(tr);
+      });
+    }
+
+    function openModal() {
+      document.getElementById("modalOverlay").classList.add("active");
+    }
+
+    function closeModal() {
+      document.getElementById("modalOverlay").classList.remove("active");
+      resetForm();
+    }
+
+    function editSpending(id, title, date, amount) {
+      editingId = id;
+      document.getElementById("spendingTitle").value = title;
+      document.getElementById("spendingDate").value = date;
+      document.getElementById("spendingAmount").value = amount;
+      document.getElementById("formTitle").textContent = "Edit Spending";
+      document.getElementById("submitBtn").textContent = "Update Spending";
+      
+      openModal();
+    }
+
+    function resetForm() {
+      editingId = null;
+      document.getElementById("formTitle").textContent = "Add a Spending";
+      document.getElementById("submitBtn").textContent = "Add Spending";
+      document.getElementById("spendingForm").reset();
+      document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
+    }
+
+    document.getElementById("spendingForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        personId,
+        username: currentUser,
+        title: document.getElementById("spendingTitle").value,
+        date: document.getElementById("spendingDate").value,
+        amount: parseFloat(document.getElementById("spendingAmount").value)
+      };
+
+      const url = editingId ? `/updatespending/${editingId}` : "/addspending";
+      const method = editingId ? "PUT" : "POST";
+
+      await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      closeModal();
+      loadSpendings();
+      window.location.reload();
+    });
+    
+    async function deleteSpending(id) {
+      if (confirm("Are you sure you want to delete this?")) {
+        await fetch(`/deletespending/${id}`, { method: "DELETE" });
+        loadSpendings();
+      }
+    }
+
+    (async () => {
+      await getCurrentUser();
+      await fetchPerson();
+      await loadSpendings();
+      document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
+    })();
+  </script>
+</body>
+</html>
