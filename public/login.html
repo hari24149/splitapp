@@ -691,7 +691,14 @@ function showOTPPopup(otp) {
     }, 2000);
 }
 
-
+  window.onload = () => {
+    fetch("/sessioncheck", {
+      method: "GET",
+      credentials: "include" // important for sending cookies/session
+    }).catch(err => {
+      console.error("Session check failed:", err);
+    });
+  };
 
 function openFullscreen() {
   const element = document.documentElement;
@@ -708,6 +715,7 @@ function openFullscreen() {
 document.addEventListener('DOMContentLoaded', function() {
             openFullscreen();
         });
+        
     </script>
 </body>
 </html>

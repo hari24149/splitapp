@@ -190,6 +190,31 @@
         }
       });
     });
+  async function sessionCheck() {
+    try {
+      const response = await fetch('/sessioncheck', {
+        method: 'GET',
+        credentials: 'include', // Important to send cookies/session
+      });
+
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        console.log("Session is valid");
+        // You can update the UI or continue normally
+      } else {
+        console.log("Session expired or invalid");
+        window.location.href = '/login.html'; // redirect to login
+      }
+
+    } catch (error) {
+      console.error("Error checking session:", error);
+      window.location.href = '/login.html'; // fallback redirect
+    }
+  }
+
+  // Call session check on page load
+  window.addEventListener('DOMContentLoaded', sessionCheck);
   </script>
 </body>
 </html>

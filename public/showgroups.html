@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Admin Group Summary</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     :root {
       --blue-light: #e3f2fd;
@@ -42,7 +43,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 10px;
+      padding: 0 20px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     h1 {
@@ -52,7 +55,7 @@
 
     .group-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 25px;
       max-width: 1200px;
       margin: 20px auto;
@@ -186,19 +189,30 @@
       100% { transform: translate(24px, 0); }
     }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.8rem;
-      }
+    @media (max-width: 768px) {
       .top-bar {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .group-card {
+        padding: 20px;
+        border-radius: var(--radius);
+      }
+
+      .group-card h3 {
+        font-size: 1.2rem;
       }
     }
   </style>
 </head>
-<body>
+<body class="light">
 
   <div class="top-bar">
     <h1>Admin - All Groups</h1>
@@ -243,13 +257,11 @@
             <button class="delete-btn">Delete</button>
           `;
 
-          // Navigate to details page
           card.addEventListener("click", e => {
             if (e.target.classList.contains("delete-btn")) return;
             window.location.href = `/groupdetails.html?id=${group._id}`;
           });
 
-          // Delete logic
           card.querySelector(".delete-btn").addEventListener("click", async () => {
             const password = prompt("Enter your password to confirm deletion:");
             if (!password) return alert("Password is required.");
@@ -286,6 +298,59 @@
       }
     }
 
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.getElementById("theme-toggle");
+      const theme = localStorage.getItem("theme");
+
+      if (theme === "dark") {
+        document.body.classList.remove("light");
+        document.body.classList.add("dark");
+        toggle.checked = true;
+      } else {
+        document.body.classList.add("light");
+        toggle.checked = false;
+      }
+
+      toggle.addEventListener("change", () => {
+        if (toggle.checked) {
+          document.body.classList.remove("light");
+          document.body.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.body.classList.remove("dark");
+          document.body.classList.add("light");
+          localStorage.setItem("theme", "light");
+        }
+      });
+    });
+
+
+  async function sessionCheck() {
+    try {
+      const response = await fetch('/sessioncheck', {
+        method: 'GET',
+        credentials: 'include', // Important to send cookies/session
+      });
+
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        console.log("Session is valid");
+        // You can update the UI or continue normally
+      } else {
+        console.log("Session expired or invalid");
+        window.location.href = '/login.html'; // redirect to login
+      }
+
+    } catch (error) {
+      console.error("Error checking session:", error);
+      window.location.href = '/login.html'; // fallback redirect
+    }
+  }
+
+  // Call session check on page load
+  window.addEventListener('DOMContentLoaded', sessionCheck);
     document.addEventListener("DOMContentLoaded", () => {
       loadGroups();
     });

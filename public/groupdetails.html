@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Group Details</title>
@@ -20,7 +21,8 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
 
-    h2, h3 {
+    h2,
+    h3 {
       color: #1976d2;
     }
 
@@ -56,7 +58,8 @@
       margin-top: 10px;
     }
 
-    input, select {
+    input,
+    select {
       padding: 6px;
       width: 100%;
       margin-top: 5px;
@@ -84,7 +87,8 @@
       margin-top: 20px;
     }
 
-    .spending-table th, .spending-table td {
+    .spending-table th,
+    .spending-table td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: left;
@@ -106,6 +110,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="container">
@@ -290,9 +295,20 @@
       }
     }
 
+    window.onload = () => {
+      fetch("/sessioncheck", {
+        method: "GET",
+        credentials: "include" // important for sending cookies/session
+      }).catch(err => {
+        console.error("Session check failed:", err);
+      });
+    };
+
+
     fetchPerson();
     loadSpendings();
     document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
   </script>
 </body>
+
 </html>

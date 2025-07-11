@@ -1,365 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Modern Admin Dashboard</title>
-  <style>
-    :root {
-      --bg-color: #121212;
-      --text-color: #ffffff;
-      --sidebar-color: #1f1f1f;
-      --accent: #4fc3f7;
-      --card-bg: #1e1e1e;
-    }
-
-    body.light {
-      --bg-color: #f4f4f4;
-      --text-color: #111111;
-      --sidebar-color: #ffffff;
-      --accent: #007acc;
-      --card-bg: #ffffff;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      height: 100vh;
-      background: var(--bg-color);
-      color: var(--text-color);
-      transition: all 0.3s ease;
-    }
-
-    /* Layout changed: No sidebar on desktop, top nav bar instead */
-    .layout {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      transition: margin-left 0.3s ease;
-    }
-
-    /* Hamburger for mobile */
-    .hamburger {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      width: 30px;
-      height: 22px;
-      cursor: pointer;
-      z-index: 200;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .hamburger span {
-      display: block;
-      height: 4px;
-      background: var(--text-color);
-      border-radius: 2px;
-      transition: 0.3s ease;
-    }
-
-    .hamburger.active span:nth-child(1) {
-      transform: rotate(45deg) translate(5px, 5px);
-    }
-
-    .hamburger.active span:nth-child(2) {
-      opacity: 0;
-    }
-
-    .hamburger.active span:nth-child(3) {
-      transform: rotate(-45deg) translate(5px, -5px);
-    }
-
-    /* Sidebar - mobile style */
-    .sidebar {
-      width: 230px;
-      background-color: var(--sidebar-color);
-      padding: 25px 20px;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.3);
-      height: 100vh;
-      position: fixed;
-      left: 0;
-      top: 0;
-      transition: transform 0.3s ease;
-      z-index: 100;
-      transform: translateX(-100%);
-      overflow-y: auto;
-    }
-
-    .sidebar.open {
-      transform: translateX(0);
-    }
-
-    .sidebar h2 {
-      color: var(--accent);
-      margin-bottom: 25px;
-      text-align: center;
-    }
-
-    .sidebar ul {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    .sidebar li {
-      margin: 18px 0;
-    }
-
-    .sidebar a {
-      text-decoration: none;
-      color: var(--text-color);
-      padding: 10px;
-      display: block;
-      border-radius: 6px;
-      transition: background 0.3s;
-    }
-
-    .sidebar a:hover,
-    .sidebar a.active {
-      background: var(--accent);
-      color: white;
-    }
-
-    /* Main content */
-    .main-content {
-      flex-grow: 1;
-      padding: 30px;
-      margin-left: 0;
-      width: 100%;
-      transition: margin-left 0.3s ease;
-    }
-
-    /* Header section */
-    header {
-      background-color: var(--card-bg);
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 25px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    }
-
-    /* Sections */
-    .section {
-      display: none;
-      background-color: var(--card-bg);
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    .section.active {
-      display: block;
-    }
-
-    /* Buttons */
-    button {
-      padding: 10px 20px;
-      margin: 8px 5px;
-      background-color: var(--accent);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #0288d1;
-    }
-
-    /* Settings styling */
-    .setting-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 15px 0;
-      flex-wrap: wrap;
-    }
-
-    select, input[type="checkbox"] {
-      padding: 6px;
-      border-radius: 6px;
-      font-size: 14px;
-      background: transparent;
-      color: var(--text-color);
-      border: 1px solid #555;
-    }
-
-    /* Switch styling */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 45px;
-      height: 25px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0;
-      right: 0; bottom: 0;
-      background-color: #888;
-      border-radius: 34px;
-      transition: 0.4s;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 17px;
-      width: 17px;
-      left: 4px;
-      bottom: 4px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: var(--accent);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-
-    /* Modal styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 10;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.6);
-    }
-
-    .modal-content {
-      background-color: var(--card-bg);
-      color: var(--text-color);
-      margin: 10% auto;
-      padding: 20px;
-      width: 80%;
-      max-width: 400px;
-      border-radius: 10px;
-      position: relative;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .close-btn {
-      position: absolute;
-      right: 12px;
-      top: 8px;
-      font-size: 22px;
-      cursor: pointer;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    ul#user-list {
-      margin-left: 20px;
-      line-height: 1.6;
-    }
-
-    /* Responsive and desktop top nav fixes */
-
-    /* For screen >= 769px, show top nav bar */
-    @media screen and (min-width: 769px) {
-      /* Hide hamburger */
-      .hamburger {
-        display: none;
-      }
-
-      /* Sidebar transforms into top nav bar */
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        width: 100vw;
-        padding: 0 30px;
-        background-color: var(--sidebar-color);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        transform: none !important;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: nowrap;
-        z-index: 1000;
-      }
-
-      .sidebar h2 {
-        margin: 0;
-        font-size: 24px;
-        color: var(--accent);
-        user-select: none;
-      }
-
-      .sidebar ul {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        gap: 25px;
-        list-style: none;
-        flex-wrap: nowrap;
-        align-items: center;
-        overflow-x: auto;
-      }
-
-      .sidebar li {
-        margin: 0;
-      }
-
-      .sidebar a {
-        padding: 8px 12px;
-        font-weight: 600;
-        font-size: 16px;
-        white-space: nowrap;
-        border-radius: 8px;
-        color: var(--text-color);
-        transition: background 0.3s ease;
-        display: inline-block;
-      }
-
-      .sidebar a:hover,
-      .sidebar a.active {
-        background: var(--accent);
-        color: white;
-      }
-
-      /* Push main content below the top nav */
-      .main-content {
-        margin-left: 0;
-        padding: 90px 40px 40px;
-      }
-    }
-
-    /* On small screen: main content padding to avoid fixed hamburger */
-    @media screen and (max-width: 768px) {
-      .main-content {
-        padding: 60px 15px 15px;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="admin.css">
 </head>
+
 <body>
 
   <div class="hamburger" onclick="toggleSidebar(this)">
@@ -380,7 +28,9 @@
     </nav>
 
     <div class="main-content" id="main-content">
-      <header><h1 id="section-title">Dashboard</h1></header>
+      <header>
+        <h1 id="section-title">Dashboard</h1>
+      </header>
 
       <section id="dashboard" class="section active">
         <p>Welcome to your modern admin dashboard ✨</p>
@@ -388,11 +38,58 @@
 
       <section id="users" class="section">
         <h2>User Management</h2>
-        <button onclick="addUser()">Add User</button>
+        <!-- -------------------------------------layout------------------------------- -->
+        <div class="cards">
+          <ul id="user-list"></ul>
+          <div class="card white">
+            <!-- From Uiverse.io by Javierrocadev -->
+            <div class="internalcard">
+              <div class="image"></div>
+              <div class="card-info">
+                <span>Create Group</span>
+                <p></p>
+              </div>
+              <a href="#" class="button" onclick="createGroup()">Create Group</a>
+            </div>
+          </div>
+          <div class="card white">
+            <div class="internalcard">
+              <div class="image"></div>
+              <div class="card-info">
+                <span>Add User</span>
+                <p></p>
+              </div>
+              <a href="#" class="button" onclick="addUser()">Add User</a>
+            </div>
+          </div>
+          <div class="card white">
+            <div class="internalcard">
+              <div class="image"></div>
+              <div class="card-info">
+                <span>Show Groups</span>
+                <p></p>
+              </div>
+              <a href="#" class="button" onclick="showGroups()">Show Groups</a>
+            </div>
+          </div>
+          <div class="card white">
+            <div class="internalcard">
+              <div class="image"></div>
+              <div class="card-info">
+                <span>View Users</span>
+                <p></p>
+              </div>
+              <a href="#" class="button" onclick="fetchUsers()">View Users</a>
+            </div>
+          </div>
+        </div>
+        <!-- -------------------------------------layout------------------------------- -->
+
+        <!-- <button onclick="addUser()">Add User</button>
         <button onclick="fetchUsers()">View Users</button>
         <button onclick="createGroup()">Create Group</button>
-        <button onclick="showGroups()">Show Groups</button>
-        <ul id="user-list"></ul>
+        <button onclick="showGroups()">Show Groups</button> -->
+        <!-- <ul id="user-list"></ul> -->
       </section>
 
       <section id="settings" class="section">
@@ -458,6 +155,7 @@
   </div>
 
   <script>
+
     function toggleSidebar(icon) {
       document.getElementById("sidebar").classList.toggle("open");
       icon.classList.toggle("active");
@@ -544,7 +242,7 @@
     }
 
     // Close modals on click outside content
-    window.onclick = function(event) {
+    window.onclick = function (event) {
       const aboutModal = document.getElementById("about-modal");
       const logoutModal = document.getElementById("logout-modal");
 
@@ -574,6 +272,32 @@
       // Redirect to logout endpoint
       window.location.href = "/logout";
     }
+      async function sessionCheck() {
+    try {
+      const response = await fetch('/sessioncheck', {
+        method: 'GET',
+        credentials: 'include', // Important to send cookies/session
+      });
+
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        console.log("Session is valid");
+        // You can update the UI or continue normally
+      } else {
+        console.log("Session expired or invalid");
+        window.location.href = '/login.html'; // redirect to login
+      }
+
+    } catch (error) {
+      console.error("Error checking session:", error);
+      window.location.href = '/login.html'; // fallback redirect
+    }
+  }
+
+  // Call session check on page load
+  window.addEventListener('DOMContentLoaded', sessionCheck);
   </script>
 </body>
+
 </html>
