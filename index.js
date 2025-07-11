@@ -384,7 +384,13 @@ function authorize(req, res, next) {
   return res.status(401).json({ message: "Unauthorized" });
 } 
 
-app.get("/sessioncheck", authenticate, (req, res) => {
+app.get('/sessioncheck', authenticate, (req, res) => {
+  // Return session info if needed
+  res.json({
+    loggedIn: true,
+    username: req.session.user.username || req.session.user,
+  });
 });
+
 // Server start
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
