@@ -208,7 +208,6 @@ app.post("/creategroup", async (req, res) => {
       numPersons,
       users // Expects colon-separated string like "admin:admin1:Ramu"
     } = req.body;
-    console.log(req.body);
     const userObj = {};
     users.split(":").forEach(name => {
       userObj[name] = 0;
@@ -385,10 +384,11 @@ function authorize(req, res, next) {
 } 
 
 app.get('/sessioncheck', authenticate, (req, res) => {
-  // Return session info if needed
   res.json({
     loggedIn: true,
-    username: req.session.user.username || req.session.user,
+    role: req.session.user.role,
+    name: req.session.user.name,
+    email: req.session.user.email
   });
 });
 

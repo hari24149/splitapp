@@ -190,31 +190,32 @@
         }
       });
     });
-  async function sessionCheck() {
+
+      async function sessionCheckAdmin() {
     try {
       const response = await fetch('/sessioncheck', {
         method: 'GET',
-        credentials: 'include', // Important to send cookies/session
+        credentials: 'include',
       });
 
       const data = await response.json();
 
       if (data.loggedIn) {
-        console.log("Session is valid");
-        // You can update the UI or continue normally
+        if (data.role !== 'admin') {
+          console.log("user")
+        } else {
+          window.location.href = '/admin.html';
+        }
       } else {
-        console.log("Session expired or invalid");
-        window.location.href = '/login.html'; // redirect to login
+        window.location.href = '/login.html';
       }
-
     } catch (error) {
       console.error("Error checking session:", error);
-      window.location.href = '/login.html'; // fallback redirect
+      window.location.href = '/login.html';
     }
   }
 
-  // Call session check on page load
-  window.addEventListener('DOMContentLoaded', sessionCheck);
+  window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
   </script>
 </body>
 </html>

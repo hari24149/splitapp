@@ -295,14 +295,32 @@
       }
     }
 
-    window.onload = () => {
-      fetch("/sessioncheck", {
-        method: "GET",
-        credentials: "include" // important for sending cookies/session
-      }).catch(err => {
-        console.error("Session check failed:", err);
+   async function sessionCheckUser() {
+    try {
+      const response = await fetch('/sessioncheck', {
+        method: 'GET',
+        credentials: 'include',
       });
-    };
+
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        if (data.role === 'admin') {
+          console.log("admin")
+        } else {
+          window.location.href = '/user.html'; 
+        }
+      } else {
+        window.location.href = '/login.html'; // Session expired
+      }
+    } catch (error) {
+      console.error("Error checking session:", error);
+      window.location.href = '/login.html';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', sessionCheckUser);
+
 
 
     fetchPerson();
