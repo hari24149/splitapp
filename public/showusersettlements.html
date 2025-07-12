@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Settlements</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #f7f8fa, #e2eafc);
+      color: #333;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 2rem;
+      color: #222;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    #settlementsContainer {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .user-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: fadeInUp 0.5s ease forwards;
+      opacity: 0;
+    }
+
+    .user-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-card h3 {
+      margin-top: 0;
+      font-size: 1.4rem;
+      color: #2c3e50;
+    }
+
+    .user-card p {
+      margin: 10px 0;
+      font-size: 1rem;
+    }
+
+    .user-card strong {
+      color: #1abc9c;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+    }
+
+    button:nth-child(2) {
+      background-color: #3498db;
+      color: white;
+    }
+
+    button:nth-child(2):hover {
+      background-color: #2980b9;
+    }
+
+    button:nth-child(3) {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    button:nth-child(3):hover {
+      background-color: #1e8449;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Your Settlements</h2>
+  <div id="settlementsContainer"></div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get("name");
+    const groupid = urlParams.get("groupid");
+    let currentUser = { name: username };
+
+    async function loadSettlements() {
+      const res = await fetch(`/api/getsettlement/${groupid}/${currentUser.name}`);
+      const { settlement } = await res.json();
+
+      const sendto = settlement.sendto;
+      const receivefrom = settlement.receivefrom;
+      const container = document.getElementById("settlementsContainer");
+      container.innerHTML = "";
+
+      Object.keys(sendto).forEach((person, index) => {
+        const userCard = document.createElement("div");
+        userCard.className = "user-card";
+        userCard.style.animationDelay = `${index * 0.1}s`;
+
+        userCard.innerHTML = `
+          <h3>${person}</h3>
+          <p>Send To: <strong>${sendto[person]}</strong></p>
+          <p>Receive From: <strong>${receivefrom[person]}</strong></p>
+          <div class="actions">
+            <input type="number" placeholder="Enter amount" min="0" id="amount-${person}" />
+            <button onclick="giveMoney('${person}', ${sendto[person]})">Give</button>
+            <button onclick="settleUser('${person}')">Settle</button>
+          </div>
+        `;
+
+        container.appendChild(userCard);
+      });
+    }
+
+    async function giveMoney(to, existingAmount) {
+      const input = document.getElementById(`amount-${to}`);
+      const value = parseFloat(input.value);
+      if (isNaN(value) || value <= 0) return alert("Enter valid amount");
+      if (value > existingAmount) return alert("Amount exceeds current balance");
+
+      const res = await fetch("/api/updatesettlementamount", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ from: currentUser.name, to, amount: value, groupid })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert("Amount updated");
+        loadSettlements();
+      } else {
+        alert("Error updating");
+      }
+    }
+
+    async function settleUser(to) {
+      const res = await fetch("/api/settleuser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ from: currentUser.name, to, groupid })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert("User settled");
+        loadSettlements();
+      } else {
+        alert("Failed to settle");
+      }
+    }
+
+    window.onload = loadSettlements;
+  </script>
+</body>
+</html>

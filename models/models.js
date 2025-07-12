@@ -41,10 +41,34 @@ const userSpendingSchema = new mongoose.Schema({
 const Spending = mongoose.model("UserSpending", userSpendingSchema, "user_spendings");
 
 
+const SettlementGroupSchema = new mongoose.Schema({
+  settlement_groupid: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  sendto: {
+    type: mongoose.Schema.Types.Mixed, // ✅ not Object
+    default: {}
+  },
+  receivefrom: {
+    type: mongoose.Schema.Types.Mixed, // ✅ not Object
+    default: {}
+  }
+}, {
+  timestamps: true,
+  strict: false // ✅ optional but good for flexibility
+});
+
+const SettlementGroup = mongoose.model('SettlementGroup', SettlementGroupSchema);
 
 // ✅ Export both models as properties
 module.exports = {
   User,
   Person,
-  Spending
+  Spending,
+  SettlementGroup
 };

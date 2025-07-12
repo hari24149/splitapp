@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Group Details</title>
   <style>
     body {
@@ -10,7 +10,6 @@
       background: #f5f7fa;
       color: #333;
     }
-
     .container {
       max-width: 800px;
       margin: auto;
@@ -19,46 +18,37 @@
       border-radius: 12px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     }
-
     h2, h3 {
       color: #1976d2;
     }
-
     .label {
       font-weight: bold;
       color: #555;
     }
-
     .value {
       color: #222;
     }
-
     ul {
       padding-left: 20px;
     }
-
     .spending-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-
     .spending-table th,
     .spending-table td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: left;
     }
-
     .spending-table th {
       background-color: #1976d2;
       color: white;
     }
-
     .actions button {
       margin-right: 5px;
     }
-
     .btn-primary {
       background-color: #1976d2;
       color: white;
@@ -70,7 +60,6 @@
       transition: background-color 0.3s;
       margin-top: 20px;
     }
-
     .btn-primary:hover {
       background-color: #1256ad;
     }
@@ -85,12 +74,9 @@
       transition: background-color 0.3s;
       margin-top: 20px;
     }
-
     .btn-delete:hover {
       background-color: red;
     }
-
-    /* Modal styles */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -103,11 +89,9 @@
       align-items: center;
       z-index: 999;
     }
-
     .modal-overlay.active {
       display: flex;
     }
-
     .modal {
       background: white;
       padding: 30px;
@@ -117,7 +101,6 @@
       max-width: 500px;
       animation: fadeIn 0.3s ease;
     }
-
     @keyframes fadeIn {
       from {
         transform: scale(0.95);
@@ -128,17 +111,14 @@
         opacity: 1;
       }
     }
-
     .modal h3 {
       margin-top: 0;
       color: #1976d2;
     }
-
     .modal label {
       display: block;
       margin-top: 10px;
     }
-
     .modal input {
       padding: 10px;
       width: 100%;
@@ -146,7 +126,6 @@
       border: 1px solid #ccc;
       border-radius: 6px;
     }
-
     .modal button {
       margin-top: 15px;
       padding: 10px 15px;
@@ -156,12 +135,10 @@
       border-radius: 6px;
       cursor: pointer;
     }
-
     .modal .cancel {
-      background:red;
+      background: red;
       margin-left: 10px;
     }
-
     @media (max-width: 600px) {
       body {
         padding: 20px;
@@ -182,6 +159,7 @@
     <ul id="userList"></ul>
 
     <button class="btn-primary" onclick="openModal()">Add Expense</button>
+    <button class="btn-primary" id="viewSettlementsBtn">View Settlements</button>
 
     <h3>All Spendings</h3>
     <table class="spending-table">
@@ -198,19 +176,18 @@
     </table>
   </div>
 
-  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <h3 id="formTitle">Add a Spending</h3>
       <form id="spendingForm">
         <label for="spendingTitle">Title:</label>
-        <input type="text" id="spendingTitle" placeholder="e.g. Food, Rent" required />
+        <input type="text" id="spendingTitle" required />
 
         <label for="spendingDate">Date:</label>
         <input type="date" id="spendingDate" required />
 
         <label for="spendingAmount">Amount:</label>
-        <input type="number" id="spendingAmount" placeholder="Enter amount" required />
+        <input type="number" id="spendingAmount" required />
 
         <button type="submit" id="submitBtn">Add Spending</button>
         <button type="button" class="cancel" onclick="closeModal()">Cancel</button>
@@ -268,7 +245,7 @@
           <td class="actions">
             ${isUserRecord ? `
               <button class="btn-primary" onclick="editSpending('${item._id}', '${item.title}', '${item.date}', ${item.amount})">Edit</button>
-              <button  class="btn-delete"  onclick="deleteSpending('${item._id}')">Delete</button>
+              <button class="btn-delete" onclick="deleteSpending('${item._id}')">Delete</button>
             ` : `<span style="color:#aaa;">NO ACCESS</span>`}
           </td>
         `;
@@ -292,7 +269,6 @@
       document.getElementById("spendingAmount").value = amount;
       document.getElementById("formTitle").textContent = "Edit Spending";
       document.getElementById("submitBtn").textContent = "Update Spending";
-      
       openModal();
     }
 
@@ -328,7 +304,7 @@
       loadSpendings();
       window.location.reload();
     });
-    
+
     async function deleteSpending(id) {
       if (confirm("Are you sure you want to delete this?")) {
         await fetch(`/deletespending/${id}`, { method: "DELETE" });
@@ -336,38 +312,16 @@
       }
     }
 
+    document.getElementById("viewSettlementsBtn").addEventListener("click", () => {
+      window.location.href = `/showusersettlements.html?groupid=${personId}&name=${currentUser}`;
+    });
+
     (async () => {
       await getCurrentUser();
       await fetchPerson();
       await loadSpendings();
       document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
     })();
-
-    async function sessionCheckAdmin() {
-    try {
-      const response = await fetch('/sessioncheck', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-
-      if (data.loggedIn) {
-        if (data.role !== 'admin') {
-          console.log("user")
-        } else {
-          window.location.href = '/admin.html';
-        }
-      } else {
-        window.location.href = '/login.html';
-      }
-    } catch (error) {
-      console.error("Error checking session:", error);
-      window.location.href = '/login.html';
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
   </script>
 </body>
 </html>
