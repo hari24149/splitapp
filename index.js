@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const path = require("path");
+const nodemailer = require('nodemailer');
 const { User, Person, Spending, SettlementGroup } = require("./models/models");
 const statusMonitor = require('express-status-monitor');
 dotenv.config();
@@ -196,41 +197,6 @@ app.get("/logout", (req, res) => {
     res.redirect("/login.html");
   });
 });
-
-// Route to create group
-// app.post("/creategroup", async (req, res) => {
-//   try {
-//     const {
-//       groupName,
-//       groupDesc,
-//       groupCreatedBy,
-//       formFillingDate,
-//       numPersons,
-//       users // Expects colon-separated string like "admin:admin1:Ramu"
-//     } = req.body;
-//     const userObj = {};
-//     users.split(":").forEach(name => {
-//       userObj[name] = 0;
-//     });
-
-//     const newGroup = new Person({
-//       groupName,
-//       groupDesc,
-//       groupCreatedBy,
-//       formFillingDate,
-//       numPersons,
-//       users: userObj,
-//       totalAmount: 0,
-//     });
-
-//     await newGroup.save();
-
-//     res.status(201).json({ message: "Group created successfully", data: newGroup });
-//   } catch (err) {
-//     console.error("Error saving group:", err);
-//     res.status(500).json({ error: "Server error" });
-//   }
-// });
 
 app.post("/creategroup", async (req, res) => {
   try {
@@ -681,5 +647,37 @@ app.get('/sessioncheck', authenticate, (req, res) => {
     email: req.session.user.email
   });
 });
+
+// Configure transporter with your Gmail + App Password
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'varaprasad9116@gmail.com',
+    pass: 'fsnqersbiumvqolj' // App Password (no spaces)
+  }
+});
+
+/**
+ * Send any message to an email (or phone via email-to-SMS gateway if configured)
+ * @param {string} toEmail - Target email (can be user email)
+ * @param {string} message - Message to send
+ */
+async function sendMessage(toEmail, message) {
+  try {
+    const info = await transporter.sendMail({
+      from: '"Room Splitter" <varaprasad9116@gmail.com>',
+      to: toEmail,
+      subject: 'Alert Message',
+      html: `<p>${message}</p>`
+    });
+
+    console.log(`✅ Message sent to ${toEmail}:`, info.messageId);
+  } catch (err) {
+    console.error('❌ Error sending message:', err.message);
+  }
+}
+
+module.exports = sendMessage;
+sendMessage("hari9704949976@gmail.com", `Your OTP is 123456`);
 // Server start
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

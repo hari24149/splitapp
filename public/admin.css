@@ -148,7 +148,28 @@
 
     .section.active {
         display: block;
+        
     }
+.usermang {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.usermang button {
+  width: 100%;
+}
+
+/* For larger screens (laptops, tablets) */
+@media (min-width: 768px) {
+  .usermang button {
+    width: auto;
+    min-width: 150px;
+    flex: 1;
+  }
+}
+
 
     /* Buttons */
     button {
@@ -165,6 +186,9 @@
 
     button:hover {
         background-color: #0288d1;
+    }
+    .btnl{
+      width: 100%;
     }
 
     /* Settings styling */
@@ -368,7 +392,8 @@
 
     /* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++cssupdated++++++++++++++++++++++++++++++++++++++++++ */
     /* From Uiverse.io by kamehame-ha */
-    .section .cards {
+
+  .section .cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -570,4 +595,99 @@
 .button:hover {
   background-color: #FF6844;
   transform: scale(1.1);
+}
+
+
+/* From Uiverse.io by akshat-patel28 */ 
+.cardtime {
+  width: 280px;
+  height: 150px;
+  background: rgb(17, 4, 134);
+  border-radius: 15px;
+  box-shadow: rgb(0,0,0,0.7) 5px 10px 50px ,rgb(0,0,0,0.7) -5px 0px 250px;
+  display: flex;
+  color: white;
+  justify-content: center;
+  position: relative;
+  flex-direction: column;
+  background: linear-gradient(to right, rgb(20, 30, 48), rgb(36, 59, 85));
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.cardtime:hover {
+  box-shadow: rgb(0,0,0) 5px 10px 50px ,rgb(0,0,0) -5px 0px 250px;
+}
+
+.time-text {
+  font-size: 50px;
+  margin-top: 0px;
+  margin-left: 15px;
+  font-weight: 600;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.time-sub-text {
+  font-size: 15px;
+  margin-left: 5px;
+}
+
+.day-text {
+  font-size: 18px;
+  margin-top: 0px;
+  margin-left: 15px;
+  font-weight: 500;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.moon {
+  font-size: 20px;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  transition: all 0.3s ease-in-out;
+}
+
+.card:hover > .moon {
+  font-size: 23px;
+}
+/* From Uiverse.io by Madflows */ 
+.buttonqw {
+  position: relative;
+  overflow: hidden;
+  height: 3rem;
+  padding: 0 2rem;
+  border-radius: 1.5rem;
+  background-size: 400%;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.buttonqw:hover::before {
+  transform: scaleX(1);
+}
+
+.button-content {
+  position: relative;
+  z-index: 1;
+}
+
+.buttonqw::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  width: 100%;
+  height: inherit;
+  border-radius: inherit;
+  background: linear-gradient(
+    82.3deg,
+    rgba(150, 93, 233, 1) 10.8%,
+    rgba(99, 88, 238, 1) 94.3%
+  );
+  transition: all 0.475s;
 }
