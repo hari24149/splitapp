@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Settlement Summary</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    table {
+      width: 80%;
+      border-collapse: collapse;
+      margin: auto;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #4CAF50;
+      color: white;
+    }
+    h2 {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>Settlement Summary Table</h2>
+  <table id="settlementTable">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Net Send To (₹)</th>
+        <th>Net Receive From (₹)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const groupid = "YOUR_GROUP_ID"; // Replace with dynamic group ID or use query param
+    const users = ["user1", "user2", "user3"]; // Replace with your actual group users
+
+    async function fetchData(username) {
+      const res = await fetch(`/api/getsettlement/${groupid}/${username}`);
+      const data = await res.json();
+      return { name: username, sendto: data.settlement.sendto, receivefrom: data.settlement.receivefrom };
+    }
+
+    function computeNet(sendMap = {}, receiveMap = {}) {
+      let sendTotal = 0, receiveTotal = 0;
+
+      for (let val of Object.values(sendMap)) sendTotal += val;
+      for (let val of Object.values(receiveMap)) receiveTotal += val;
+
+      if (sendTotal > receiveTotal) {
+        return { netSend: sendTotal - receiveTotal, netReceive: 0 };
+      } else if (receiveTotal > sendTotal) {
+        return { netSend: 0, netReceive: receiveTotal - sendTotal };
+      } else {
+        return { netSend: 0, netReceive: 0 };
+      }
+    }
+
+    async function populateTable() {
+      const tbody = document.querySelector("#settlementTable tbody");
+      tbody.innerHTML = "";
+
+      for (const username of users) {
+        const { name, sendto, receivefrom } = await fetchData(username);
+        const { netSend, netReceive } = computeNet(sendto, receivefrom);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><strong>${name}</strong></td>
+          <td style="color: red;"><strong>₹${netSend.toFixed(2)}</strong></td>
+          <td style="color: green;"><strong>₹${netReceive.toFixed(2)}</strong></td>
+        `;
+        tbody.appendChild(row);
+      }
+    }
+
+    populateTable();
+  </script>
+</body>
+</html>
