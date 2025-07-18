@@ -519,7 +519,7 @@ app.post("/deletegroup", authorize, authenticate, async (req, res) => {
 // GET Settlement Data
 app.get("/api/getsettlement/:groupid/:username", async (req, res) => {
   const { groupid, username } = req.params;
-  console.log(req.params);
+  // console.log(req.params);
   try {
     const record = await SettlementGroup.findOne({
       name: username,
@@ -531,6 +531,7 @@ app.get("/api/getsettlement/:groupid/:username", async (req, res) => {
     }
 
     res.json({ settlement: record });
+    console.log(res);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
