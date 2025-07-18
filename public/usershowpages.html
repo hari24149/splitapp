@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Group Summary</title>
   <style>
     :root {
@@ -21,9 +22,10 @@
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       font-family: 'Segoe UI', sans-serif;
       transition: background-color 0.3s, color 0.3s;
+      width: 100%;
     }
 
     body.light {
@@ -42,30 +44,31 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 10px;
+      padding: 0 20px;
+      flex-wrap: wrap;
     }
 
     h1 {
-      font-size: 2.4rem;
+      font-size: 2rem;
       color: var(--primary);
     }
 
     .group-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
       max-width: 1200px;
       margin: 20px auto;
-      padding: 10px;
+      padding: 0 15px;
     }
 
     .group-card {
       background: var(--card-light);
       border-radius: var(--radius);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      padding: 25px 20px;
-      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, color 0.3s;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 20px;
       border-left: 5px solid var(--primary);
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
       cursor: pointer;
     }
 
@@ -77,41 +80,29 @@
 
     .group-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
     }
 
     .group-card h3 {
       color: var(--primary);
-      font-size: 1.4rem;
-      margin-bottom: 12px;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
     }
 
-    .group-card p {
-      margin: 6px 0;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    .group-card ul {
-      margin-top: 10px;
-      padding-left: 20px;
-    }
-
-    .group-card li {
-      font-size: 14px;
-      margin-bottom: 6px;
+    .group-card p, .group-card li {
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
 
     .btn {
-      padding: 10px 20px;
+      padding: 8px 16px;
       background: var(--primary);
       color: white;
       border: none;
       border-radius: var(--radius);
-      font-size: 16px;
+      font-size: 0.95rem;
       cursor: pointer;
       transition: background 0.3s, transform 0.2s;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .btn:hover {
@@ -119,7 +110,6 @@
       transform: scale(1.05);
     }
 
-    /* Toggle Switch */
     .switch {
       position: relative;
       display: inline-block;
@@ -136,10 +126,7 @@
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #ccc;
       transition: 0.4s;
       border-radius: 34px;
@@ -165,54 +152,40 @@
       transform: translateX(24px);
     }
 
-    @media (max-width: 600px) {
-      h1 {
-        font-size: 1.8rem;
-      }
-
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-    }
-
-    /* Loader */
     .lds-ellipsis {
       display: inline-block;
       position: relative;
-      width: 80px;
-      height: 80px;
-      margin: 20px auto;
+      width: 64px;
+      height: 20px;
     }
 
     .lds-ellipsis div {
       position: absolute;
-      top: 33px;
-      width: 13px;
-      height: 13px;
+      top: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--primary);
-      animation-timing-function: cubic-bezier(0, 1, 1, 0);
+      animation-timing-function: cubic-bezier(0,1,1,0);
     }
 
     .lds-ellipsis div:nth-child(1) {
-      left: 8px;
+      left: 6px;
       animation: lds-ellipsis1 0.6s infinite;
     }
 
     .lds-ellipsis div:nth-child(2) {
-      left: 8px;
+      left: 6px;
       animation: lds-ellipsis2 0.6s infinite;
     }
 
     .lds-ellipsis div:nth-child(3) {
-      left: 32px;
+      left: 26px;
       animation: lds-ellipsis2 0.6s infinite;
     }
 
     .lds-ellipsis div:nth-child(4) {
-      left: 56px;
+      left: 45px;
       animation: lds-ellipsis3 0.6s infinite;
     }
 
@@ -227,8 +200,28 @@
     }
 
     @keyframes lds-ellipsis2 {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(24px, 0); }
+      0% { transform: translateX(0); }
+      100% { transform: translateX(19px); }
+    }
+
+    @media (max-width: 600px) {
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .group-card {
+        padding: 15px;
+      }
     }
   </style>
 </head>
@@ -236,7 +229,7 @@
 
   <div class="top-bar">
     <h1>All Groups</h1>
-    <div style="display: flex; gap: 15px; align-items: center;">
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
       <label class="switch" style="display: none;">
         <input type="checkbox" id="theme-toggle">
         <span class="slider"></span>
@@ -244,7 +237,7 @@
       <button class="btn" onclick="location.href='usercreategroup.html'">Create Group</button>
     </div>
   </div>
-  
+
   <div class="group-container" id="groupContainer">
     <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
   </div>
@@ -264,9 +257,7 @@
 
     async function loadGroups() {
       const container = document.getElementById("groupContainer");
-      container.innerHTML = `
-        <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
-      `;
+      container.innerHTML = `<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>`;
 
       try {
         const res = await fetch("/getgroups");
@@ -278,9 +269,7 @@
           return;
         }
 
-        const userGroups = groups.filter(group =>
-          group.users && Object.keys(group.users).includes(currentUserName)
-        );
+        const userGroups = groups.filter(group => group.users && Object.keys(group.users).includes(currentUserName));
 
         container.innerHTML = "";
 
@@ -318,51 +307,50 @@
       }
     }
 
-    // DOM ready
-    document.addEventListener("DOMContentLoaded", async () => {
-      const toggle = document.getElementById("theme-toggle");
-      const theme = localStorage.getItem("theme");
+    async function sessionCheckAdmin() {
+      try {
+        const response = await fetch('/sessioncheck', {
+          method: 'GET',
+          credentials: 'include'
+        });
 
-      document.body.classList.add(theme === "dark" ? "dark" : "light");
-      toggle.checked = theme === "dark";
+        const data = await response.json();
 
-      toggle.addEventListener("change", () => {
-        const newTheme = toggle.checked ? "dark" : "light";
-        document.body.classList.remove("dark", "light");
-        document.body.classList.add(newTheme);
-        localStorage.setItem("theme", newTheme);
-      });
-
-      await fetchCurrentUser(); // Get current user's name
-      loadGroups();             // Load only relevant groups
-    });
-  async function sessionCheckAdmin() {
-    try {
-      const response = await fetch('/sessioncheck', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-
-      if (data.loggedIn) {
-        if (data.role !== 'admin') {
-          console.log("user")
+        if (data.loggedIn) {
+          if (data.role !== 'admin') {
+            console.log("User is not admin");
+          } else {
+            window.location.href = '/admin.html';
+          }
         } else {
-          window.location.href = '/admin.html';
+          window.location.href = '/login.html';
         }
-      } else {
+      } catch (error) {
+        console.error("Error checking session:", error);
         window.location.href = '/login.html';
       }
-    } catch (error) {
-      console.error("Error checking session:", error);
-      window.location.href = '/login.html';
     }
-  }
 
-  window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
+    document.addEventListener("DOMContentLoaded", async () => {
+      await sessionCheckAdmin();
+      await fetchCurrentUser();
+      loadGroups();
+
+      const toggle = document.getElementById("theme-toggle");
+      const theme = localStorage.getItem("theme");
+      document.body.classList.add(theme === "dark" ? "dark" : "light");
+      if(toggle) toggle.checked = theme === "dark";
+
+      if(toggle) {
+        toggle.addEventListener("change", () => {
+          const newTheme = toggle.checked ? "dark" : "light";
+          document.body.classList.remove("dark", "light");
+          document.body.classList.add(newTheme);
+          localStorage.setItem("theme", newTheme);
+        });
+      }
+    });
   </script>
 
 </body>
 </html>
-    

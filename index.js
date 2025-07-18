@@ -38,10 +38,9 @@ app.use(session({
     mongoUrl: process.env.MONGO_URI,
     collectionName: "sessions",
   }),
-  // cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 hours
-  cookie: { maxAge: 1000 * 60 * 60 * 24 * 2 }  // 2days
+  cookie: { maxAge: 1000 * 60 * 60 * 24 } // 24 hours
 }));
-
+module.exports = sendMessage;
 app.get("/", (req, res) => {
   if (req.session.user) {
     if (req.session.user.role === "admin") {
@@ -85,10 +84,58 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+app.post("/login-with-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.redirect('/login.html?error=Invalid email or OTP');
+    }
+    if (user.otp === otp && new Date() < user.otpExpiry) {
+      req.session.user = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      };
+
+      return user.role === "admin" ? res.redirect("/admin.html") : res.redirect("/user.html");
+    } else {
+      return res.redirect('/login.html?error=Invalid or expired OTP');
+    }
+  } catch (error) {
+    console.error("OTP login error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+app.post("/generate-otp", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otp = generateOTP();
+    user.otp = otp;
+    user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // OTP valid for 5 minutes
+    await user.save();
+
+    sendMessage(user.email, `Your OTP for login is: ${otp}`);
+
+    res.json({ success: true, message: "OTP sent to your email." });
+  } catch (error) {
+    console.error("OTP generation error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 app.get('/status', statusMonitor().pageRoute);
-app.post("/change-password",authorize,authenticate, async (req, res) => {
+app.post("/change-password", authorize, authenticate, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const userId = req.session?.user?._id;
+  const user = await User.findById(req.session?.user?._id);
+  const email = user.email;
 
   if (!userId) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -96,6 +143,7 @@ app.post("/change-password",authorize,authenticate, async (req, res) => {
 
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: "Missing required fields" });
+
   }
 
   try {
@@ -114,12 +162,63 @@ app.post("/change-password",authorize,authenticate, async (req, res) => {
     await user.save();
 
     res.json({ message: "Password changed successfully" });
+    sendMessage(email, `
+      Your password has been changed successfully.
+
+      If you didn't initiate this change, please contact us immediately to secure your account.
+
+      For any help or concerns, reach out here: https://ww.app.feedback.com
+
+      Thank you for staying with us.
+      `);
+
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-app.get("/getUserDetails",authenticate,authorize, async (req, res) => {
+
+app.post('/change-email', authorize, authenticate, async (req, res) => {
+  const userId = req.session?.user?._id;
+  const { currentEmail, newEmail } = req.body;
+
+  if (!userId || !currentEmail || !newEmail) {
+    return res.status(400).json({ success: false, message: 'Missing fields' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user || user.email !== currentEmail) {
+      return res.status(404).json({ success: false, message: 'Current email is incorrect' });
+    }
+
+    const prevEmail = user.email;
+    user.email = newEmail;
+    await user.save();
+
+    res.json({ success: true, message: 'Email updated successfully' });
+
+    // Send notification to old email
+    sendMessage(prevEmail, `
+            Your email associated with the account was changed to: ${newEmail}.
+            If this wasn't you, contact support immediately.
+            Feedback: https://ww.app.feedback.com
+        `);
+
+    // Send notification to new email
+    sendMessage(newEmail, `
+            Welcome! Your account email has been updated successfully to ${newEmail}.
+            If you did not perform this action, report here: https://ww.app.feedback.com
+        `);
+
+  } catch (error) {
+    console.error('Change email error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+
+app.get("/getUserDetails", authenticate, authorize, async (req, res) => {
   const userId = req.session?.user?._id;
 
   if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -148,17 +247,32 @@ app.post("/signup", async (req, res) => {
     });
 
     await newUser.save();
+    sendMessage(email, `
+    Your account has been successfully created by the administrator.
 
-    res.json({ success: true, message: "Signup successful", redirect: "/login" });
+    Here are your temporary login details:
+    Email: ${email}
+    Temporary Password: ${password}
+
+    For your security, please log in and change your password immediately.
+
+    If you have any feedback or need assistance, please let us know here: https://ww.app.feedback.com
+
+    Welcome to the platform!
+    `);
+
+    res.redirect("/admin.html");
+
   } catch (error) {
     console.error("Signup error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-app.post("/delete-account",authorize,authenticate,async (req, res) => {
+app.post("/delete-account", authorize, authenticate, async (req, res) => {
   try {
     const { password } = req.body;
     const user = await User.findById(req.session?.user?._id);
+    const email = user.email;
     if (!user) {
       return res.status(401).json({ success: false, message: "User not found" });
     }
@@ -171,6 +285,16 @@ app.post("/delete-account",authorize,authenticate,async (req, res) => {
     await User.findByIdAndDelete(user._id);
     req.session.destroy(() => {
       res.status(200).json({ success: true, message: "Account deleted successfully" });
+      sendMessage(email, `
+      Your account has been deleted successfully.
+
+      We're sorry to see you go! We'd love to know why you chose to leave so we can improve.
+
+      Please share your feedback here: https://ww.app.feedback.com
+
+      Thank you for being with us.
+      `);
+
     });
   } catch (error) {
     console.error("Delete error:", error);
@@ -238,29 +362,56 @@ app.post("/creategroup", async (req, res) => {
       others.forEach(other => {
         relationObj[other] = 0;
       });
-      
+
       const settlementDoc = new SettlementGroup({
-        settlement_groupid: newGroup._id.toString(), // Reference to the group
+        settlement_groupid: newGroup._id.toString(),
         name: currentUser,
         sendto: relationObj,
         receivefrom: relationObj
       });
-      console.log(settlementDoc);
+
       settlementInserts.push(settlementDoc.save());
     });
 
     await Promise.all(settlementInserts);
 
+    // Fetch emails and send messages
+    const emailPromises = userList.map(async (username) => {
+      const user = await User.findOne({ name: username });
+
+      if (user && user.email) {
+        const message = `
+          Hello ${username},
+
+          A new group has been created with the following details:
+
+          Group Name: ${groupName}
+          Description: ${groupDesc}
+          Created By: ${groupCreatedBy}
+          Form Filling Date: ${formFillingDate}
+          Members: ${userList.join(", ")}
+
+          Thank you!
+        `;
+
+        // Send email
+        await sendMessage(user.email, message);
+      }
+    });
+
+    await Promise.all(emailPromises);
+
     res.status(201).json({
-      message: "Group and settlements created successfully",
+      message: "Group and settlements created successfully. Emails sent.",
       group: newGroup
     });
 
   } catch (err) {
-    console.error("Error saving group or settlements:", err);
+    console.error("Error saving group or sending emails:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 // Example in Express.js
@@ -305,7 +456,7 @@ app.post("/addspending", async (req, res) => {
       person.totalAmount = (person.totalAmount || 0) + amount;
       const currentUserAmt = person.users.get(username) || 0;
       person.users.set(username, currentUserAmt + amount);
-      await person.save();
+      await person.save();  
     }
 
     // 4. Split the amount among all users
@@ -330,7 +481,7 @@ app.post("/addspending", async (req, res) => {
         doc.sendto[username] = (doc.sendto[username] || 0) + splitAmount;
         doc.markModified("sendto");
       }
-      console.log("spend",doc);
+      console.log("spend", doc);
       await doc.save();
     }));
 
@@ -477,7 +628,7 @@ app.delete("/deletespending/:id", async (req, res) => {
 // 📄 Get all spendings for a personId (group)
 app.get("/getspendings/:personId", async (req, res) => {
   try {
-    console.log("get method",req.params.personId);
+    console.log("get method", req.params.personId);
     const spendings = await Spending.find({ personId: req.params.personId });
     res.json(spendings);
   } catch (err) {
@@ -637,7 +788,7 @@ function authorize(req, res, next) {
     return next();
   }
   return res.status(401).json({ message: "Unauthorized" });
-} 
+}
 
 app.get('/sessioncheck', authenticate, (req, res) => {
   res.json({
@@ -648,7 +799,13 @@ app.get('/sessioncheck', authenticate, (req, res) => {
   });
 });
 
-// Configure transporter with your Gmail + App Password
+function generateOTP() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+// Example usage
+// const otp = generateOTP();
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -677,7 +834,5 @@ async function sendMessage(toEmail, message) {
   }
 }
 
-module.exports = sendMessage;
-sendMessage("hari9704949976@gmail.com", `Your OTP is 123456`);
 // Server start
 app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitApp | User Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background-color: #121212;
+      color: #fff;
+      padding: 0 10px;
+    }
+    header {
+      background: #1e1e1e;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 1.5rem;
+      border-bottom: 1px solid #333;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .time-card {
+      width: 100%;
+      max-width: 300px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin: 20px auto;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .time-main {
+      font-size: 40px;
+      font-weight: bold;
+    }
+    .time-main span#ampm {
+      font-size: 20px;
+      margin-left: 5px;
+    }
+    .time-sub {
+      font-size: 16px;
+      margin-top: 5px;
+      color: #ddd;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+    }
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: space-between;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 15px;
+      border-radius: 10px;
+      flex: 1 1 30%;
+      min-width: 200px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    .card h3 {
+      color: #90caf9;
+      font-size: 1.1rem;
+    }
+    .card p {
+      font-size: 1rem;
+      margin-top: 5px;
+    }
+    .quick-actions {
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .quick-actions h3 {
+      color: #90caf9;
+      margin-bottom: 10px;
+    }
+    .quick-actions button {
+      background: #2196f3;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px 5px 0 0;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 0.9rem;
+    }
+    .quick-actions button:hover {
+      background: #1976d2;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        flex: 1 1 100%;
+      }
+      header {
+        font-size: 1.2rem;
+        padding: 10px;
+      }
+      .quick-actions button {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+      }
+      .container {
+        padding: 0 5px;
+      }
+      .card, .quick-actions {
+        margin-bottom: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>Welcome, User 👋</header>
+
+<!-- TIME CARD -->
+<div class="time-card">
+  <div class="time-main">
+    <span id="time">00:00</span>
+    <span id="ampm">AM</span>
+  </div>
+  <div class="time-sub" id="dayDate">Day, Month Date</div>
+</div>
+
+<!-- Dashboard Content -->
+<div class="container">
+
+  <div class="cards">
+    <div class="card"><h3>Total Balance</h3><p>Loading....</p></div>
+    <div class="card"><h3>Number of Groups</h3><p>Loading....</p></div>
+    <div class="card"><h3>Pending Settlements</h3><p>Loading....</p></div>
+  </div>
+
+  <div class="quick-actions">
+    <h3>Quick Actions</h3>
+    <button onclick="location.href='usercreategroup.html'">Create Group</button>
+    <button onclick="location.href='usershowpages.html'">View Groups</button>
+    <button>Settlements</button>
+    <button>Profile</button>
+  </div>
+
+</div>
+
+<!-- JS to Update Time -->
+<script>
+  async function updateClock() {
+    const timeEl = document.getElementById('time');
+    const ampmEl = document.getElementById('ampm');
+    const dayDateEl = document.getElementById('dayDate');
+
+    try {
+      // Fetch time from worldtimeapi.org
+      const response = await fetch('https://worldtimeapi.org/api/ip');
+      const data = await response.json();
+      
+      const dateObj = new Date(data.datetime);
+      let hours = dateObj.getHours();
+      const minutes = dateObj.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 should be 12
+      const minutesFormatted = minutes < 10 ? '0' + minutes : minutes;
+
+      timeEl.textContent = `${hours}:${minutesFormatted}`;
+      ampmEl.textContent = ampm;
+
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+
+      const day = days[dateObj.getDay()];
+      const month = months[dateObj.getMonth()];
+      const date = dateObj.getDate();
+
+      function getSuffix(date) {
+        if (date > 3 && date < 21) return 'th';
+        switch (date % 10) {
+          case 1: return 'st';
+          case 2: return 'nd';
+          case 3: return 'rd';
+          default: return 'th';
+        }
+      }
+
+      dayDateEl.textContent = `${day}, ${month} ${date}${getSuffix(date)}`;
+
+    } catch (error) {
+      console.error('Failed to fetch time from server:', error);
+    }
+  }
+
+  // Fetch real-time once every minute
+  updateClock();
+  setInterval(updateClock, 60000);
+</script>
+
+
+</body>
+</html>
