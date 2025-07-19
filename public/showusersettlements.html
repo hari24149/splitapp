@@ -1,540 +1,230 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>User Settlements</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(to right, #f7f8fa, #e2eafc);
-      color: #333;
-    }
-
-    h2 {
-      text-align: center;
-      margin-top: 40px;
-      font-size: 2rem;
-      color: #222;
-      animation: fadeInDown 0.8s ease-out;
-    }
-
-    #settlementsContainer {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .user-card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      animation: fadeInUp 0.5s ease forwards;
-      opacity: 0;
-    }
-
-    .user-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .user-card h3 {
-      margin-top: 0;
-      font-size: 1.4rem;
-      color: #2c3e50;
-    }
-
-    .user-card p {
-      margin: 10px 0;
-      font-size: 1rem;
-    }
-
-    .user-card strong {
-      color: #1abc9c;
-    }
-
-    .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
-    input[type="number"] {
-      padding: 10px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      transition: border-color 0.2s;
-    }
-
-    input[type="number"]:focus {
-      border-color: #3498db;
-      outline: none;
-    }
-
-    button {
-      padding: 10px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
-    }
-
-    button:hover {
-      transform: scale(1.03);
-    }
-
-    button:nth-child(2) {
-      background-color: #3498db;
-      color: white;
-    }
-
-    button:nth-child(2):hover {
-      background-color: #2980b9;
-    }
-
-    button:nth-child(3) {
-      background-color: #27ae60;
-      color: white;
-    }
-
-    button:nth-child(3):hover {
-      background-color: #1e8449;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  </style>
-</head>
-<body>
-  <h2>Your Settlements</h2>
-  <div id="settlementsContainer"></div>
-
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get("name");
-    const groupid = urlParams.get("groupid");
-    let currentUser = { name: username };
-
-    async function loadSettlements() {
-      const res = await fetch(`/api/getsettlement/${groupid}/${currentUser.name}`);
-      const { settlement } = await res.json();
-
-      const sendto = settlement.sendto;
-      const receivefrom = settlement.receivefrom;
-      const container = document.getElementById("settlementsContainer");
-      container.innerHTML = "";
-
-      Object.keys(sendto).forEach((person, index) => {
-        const userCard = document.createElement("div");
-        userCard.className = "user-card";
-        userCard.style.animationDelay = `${index * 0.1}s`;
-
-        userCard.innerHTML = `
-          <h3>${person}</h3>
-          <p>Send To: <strong>${sendto[person]}</strong></p>
-          <p>Receive From: <strong>${receivefrom[person]}</strong></p>
-          <div class="actions">
-            <input type="number" placeholder="Enter amount" min="0" id="amount-${person}" />
-            <button onclick="giveMoney('${person}', ${sendto[person]})">Give</button>
-            <button onclick="settleUser('${person}')">Settle</button>
-          </div>
-        `;
-
-        container.appendChild(userCard);
-      });
-    }
-
-    async function giveMoney(to, existingAmount) {
-      const input = document.getElementById(`amount-${to}`);
-      const value = parseFloat(input.value);
-      if (isNaN(value) || value <= 0) return alert("Enter valid amount");
-      if (value > existingAmount) return alert("Amount exceeds current balance");
-
-      const res = await fetch("/api/updatesettlementamount", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from: currentUser.name, to, amount: value, groupid })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("Amount updated");
-        loadSettlements();
-      } else {
-        alert("Error updating");
-      }
-    }
-
-    async function settleUser(to) {
-      const res = await fetch("/api/settleuser", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from: currentUser.name, to, groupid })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("User settled");
-        loadSettlements();
-      } else {
-        alert("Failed to settle");
-      }
-    }
-
-    window.onload = loadSettlements;
-  </script>
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>User Settlements</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: linear-gradient(to right, #f7f8fa, #e2eafc);
       color: #333;
     }
-
     h2 {
       text-align: center;
       margin-top: 40px;
       font-size: 2rem;
-      color: #222;
-      animation: fadeInDown 0.8s ease-out;
     }
-
     #settlementsContainer {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      max-width: 900px; margin: 20px auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 20px;
     }
-
     .user-card {
       background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
       padding: 20px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      animation: fadeInUp 0.5s ease forwards;
-      opacity: 0;
+      transition: 0.3s;
     }
-
-    .user-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .user-card h3 {
-      margin-top: 0;
-      font-size: 1.4rem;
-      color: #2c3e50;
-    }
-
-    .user-card p {
-      margin: 10px 0;
-      font-size: 1rem;
-    }
-
-    .user-card strong {
-      color: #1abc9c;
-    }
-
-    .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 15px;
-    }
-
+    .user-card:hover { transform: translateY(-5px); }
+    .user-card h3 { margin: 0 0 10px 0; color: #2c3e50; }
+    .user-card p { margin: 8px 0; }
+    .user-card strong { color: #1abc9c; }
     input[type="number"] {
-      padding: 10px;
-      font-size: 1rem;
-      border-radius: 8px;
+      width: 100%;
+      padding: 8px;
       border: 1px solid #ccc;
-      transition: border-color 0.2s;
+      border-radius: 6px;
+      margin-bottom: 10px;
     }
-
-    input[type="number"]:focus {
-      border-color: #3498db;
-      outline: none;
-    }
-
     button {
-      padding: 10px;
-      font-size: 1rem;
+      background: #3498db;
+      color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
+      padding: 10px;
+      width: 100%;
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
+      font-weight: 600;
+      transition: 0.3s;
     }
-
-    button:hover {
-      transform: scale(1.03);
-    }
-
-    button:nth-child(2) {
-      background-color: #3498db;
-      color: white;
-    }
-
-    button:nth-child(2):hover {
-      background-color: #2980b9;
-    }
-
-    button:nth-child(3) {
-      background-color: #27ae60;
-      color: white;
-    }
-
-    button:nth-child(3):hover {
-      background-color: #1e8449;
-    }
-
+    button:hover { background: #2980b9; }
     #netSummary {
       width: 90%;
       max-width: 900px;
-      margin: 40px auto;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 20px;
     }
-
     #netSummary table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
     }
-
     #netSummary th, #netSummary td {
       border: 1px solid #ccc;
       padding: 10px;
       text-align: center;
     }
-
     #netSummary th {
-      background-color: #3498db;
+      background: #3498db;
       color: white;
     }
-
-    #netSummary caption {
-      caption-side: top;
-      font-weight: bold;
-      font-size: 20px;
-      margin-bottom: 10px;
+    /* Loading Overlay */
+    #loadingOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
     }
-    #netSummary {
-  width: 90%;
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
-  background: linear-gradient(to right, #d0e8ff, #f0f8ff);
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  animation: fadeInDown 0.6s ease-out;
-}
-
-#netSummary table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  font-size: 1.05rem;
-}
-
-#netSummary th, #netSummary td {
-  border: 1px solid #ccc;
-  padding: 12px;
-  text-align: center;
-}
-
-#netSummary th {
-  background-color: #3498db;
-  color: white;
-  font-size: 1.1rem;
-}
-
-#netSummary caption {
-  caption-side: top;
-  font-weight: bold;
-  font-size: 1.4rem;
-  margin-bottom: 12px;
-  color: #2c3e50;
-}
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .dots-container {
+      display: flex; gap: 12px;
     }
+    .dot {
+      width: 16px; height: 16px;
+      background: #3498db;
+      border-radius: 50%;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+    .dot:nth-child(1) { animation-delay: -0.3s; }
+    .dot:nth-child(2) { animation-delay: -0.15s; }
+    .dot:nth-child(3) { animation-delay: 0s; }
+    .dot:nth-child(4) { animation-delay: 0.15s; }
+    .dot:nth-child(5) { animation-delay: 0.3s; }
 
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.8); background: #b3d4fc; }
+      50% { transform: scale(1.2); background: #3498db; }
     }
   </style>
 </head>
 <body>
-  <!-- Net Settlement Table First -->
-  <h2>Net Settlement Summary</h2>
-  <div id="netSummary">
-    <table>
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>You Send</th>
-          <th>You Receive</th>
-        </tr>
-      </thead>
-      <tbody id="netSettlementBody"></tbody>
-    </table>
-  </div>
 
-  <!-- Cards Section After -->
-  <h2>Your Settlements</h2>
-  <div id="settlementsContainer"></div>
+<!-- Loading -->
+<div id="loadingOverlay">
+  <section class="dots-container">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </section>
+</div>
 
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get("name");
-    const groupid = urlParams.get("groupid");
-    let currentUser = { name: username };
+<h2>Net Settlement Summary</h2>
+<div id="netSummary">
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>You Send</th>
+        <th>You Receive</th>
+      </tr>
+    </thead>
+    <tbody id="netSettlementBody"></tbody>
+  </table>
+</div>
 
-    async function loadSettlements() {
-      const res = await fetch(`/api/getsettlement/${groupid}/${currentUser.name}`);
-      const { settlement } = await res.json();
+<h2>Your Settlements</h2>
+<div id="settlementsContainer"></div>
 
-      const sendto = settlement.sendto || {};
-      const receivefrom = settlement.receivefrom || {};
-      const container = document.getElementById("settlementsContainer");
-      const tableBody = document.getElementById("netSettlementBody");
-      container.innerHTML = "";
-      tableBody.innerHTML = "";
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get("name");
+  const groupid = urlParams.get("groupid");
 
-      const users = new Set([...Object.keys(sendto), ...Object.keys(receivefrom)]);
-      users.forEach((person, index) => {
-        const send = sendto[person] || 0;
-        const receive = receivefrom[person] || 0;
+  async function loadSettlements() {
+    const res = await fetch(`/api/getsettlement/${groupid}/${username}`);
+    const { settlement } = await res.json();
 
-        // Compute net values
-        let netSend = 0, netReceive = 0;
-        if (send > receive) {
-          netSend = send - receive;
-        } else if (receive > send) {
-          netReceive = receive - send;
+    const sendto = settlement.sendto || {};
+    const receivefrom = settlement.receivefrom || {};
+    const container = document.getElementById("settlementsContainer");
+    const tableBody = document.getElementById("netSettlementBody");
+    container.innerHTML = "";
+    tableBody.innerHTML = "";
+
+    const users = new Set([...Object.keys(sendto), ...Object.keys(receivefrom)]);
+    users.forEach(person => {
+      const send = sendto[person] || 0;
+      const receive = receivefrom[person] || 0;
+
+      // Net Summary
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${person}</td>
+        <td>${(send - receive > 0) ? (send - receive).toFixed(2) : '-'}</td>
+        <td>${(receive - send > 0) ? (receive - send).toFixed(2) : '-'}</td>
+      `;
+      tableBody.appendChild(row);
+
+      // User card
+      const card = document.createElement("div");
+      card.className = "user-card";
+      card.innerHTML = `
+        <h3>${person}</h3>
+        <p>${person} spent on you: <strong>₹${send}</strong></p>
+        <p>Your spending on ${person}: <strong>₹${receive}</strong></p>
+        <input type="number" id="amount-${person}" placeholder="Enter amount to give">
+        <button onclick="giveMoney('${person}', ${send})">Give</button>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+
+  async function giveMoney(to, maxAmount) {
+    const input = document.getElementById(`amount-${to}`);
+    const amount = parseFloat(input.value);
+    if (!amount || amount <= 0) return alert("Enter a valid amount.");
+    if (amount > maxAmount) return alert("Cannot give more than owed.");
+
+    await fetch("/api/updatesettlementamount", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from: username, to, amount, groupid })
+    });
+
+    alert("Amount updated.");
+    loadSettlements();
+  }
+   async function sessionCheckAdmin() {
+      try {
+        const response = await fetch('/sessioncheck', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (data.loggedIn) {
+          if (data.role !== 'admin') {
+            console.log("user")
+          } else {
+            window.location.href = '/admin.html';
+          }
+        } else {
+          window.location.href = '/login.html';
         }
-
-        // Card
-        const userCard = document.createElement("div");
-        userCard.className = "user-card";
-        userCard.style.animationDelay = `${index * 0.1}s`;
-        userCard.innerHTML = `
-          <h3>${person}</h3>
-          <p>Send To: <strong>${send}</strong></p>
-          <p>Receive From: <strong>${receive}</strong></p>
-          <div class="actions">
-            <input type="number" placeholder="Enter amount" min="0" id="amount-${person}" />
-            <button onclick="giveMoney('${person}', ${send})">Give</button>
-            <button onclick="settleUser('${person}')">Settle</button>
-          </div>
-        `;
-        container.appendChild(userCard);
-
-        // Table Row
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${person}</td>
-          <td>${netSend.toFixed(2)}</td>
-          <td>${netReceive.toFixed(2)}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-
-    async function giveMoney(to, existingAmount) {
-      const input = document.getElementById(`amount-${to}`);
-      const value = parseFloat(input.value);
-      if (isNaN(value) || value <= 0) return alert("Enter valid amount");
-      if (value > existingAmount) return alert("Amount exceeds current balance");
-
-      const res = await fetch("/api/updatesettlementamount", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from: currentUser.name, to, amount: value, groupid })
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("Amount updated");
-        loadSettlements();
-      } else {
-        alert("Error updating");
+      } catch (error) {
+        console.error("Error checking session:", error);
+        window.location.href = '/login.html';
       }
     }
+     window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
 
-    async function settleUser(to) {
-      const res = await fetch("/api/settleuser", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from: currentUser.name, to, groupid })
-      });
+  window.onload = loadSettlements;
+</script>
 
-      const data = await res.json();
-      if (data.success) {
-        alert("User settled");
-        loadSettlements();
-      } else {
-        alert("Failed to settle");
-      }
-    }
-
-    window.onload = loadSettlements;
-  </script>
 </body>
 </html>
-
-
-
-

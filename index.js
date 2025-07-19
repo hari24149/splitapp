@@ -118,7 +118,7 @@ app.post("/generate-otp", async (req, res) => {
 
     const otp = generateOTP();
     user.otp = otp;
-    user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // OTP valid for 5 minutes
+    user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
     await user.save();
 
     sendMessage(user.email, `Your OTP for login is: ${otp}`);
@@ -232,9 +232,16 @@ app.post("/signup", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.redirect('/login.html?error=user already exist');
+    // Check if email already exists
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      return res.json({ success: false, message: 'User already exists with this email' });
+    }
+
+    // Check if name already exists
+    const existingUserByName = await User.findOne({ name });
+    if (existingUserByName) {
+      return res.json({ success: false, message: 'User already exists with this name' });
     }
 
     const hashedPassword = bcrypt.hashSync(password, 10);
@@ -247,6 +254,7 @@ app.post("/signup", async (req, res) => {
     });
 
     await newUser.save();
+
     sendMessage(email, `
     Your account has been successfully created by the administrator.
 
@@ -418,7 +426,6 @@ app.post("/creategroup", async (req, res) => {
 app.get("/getgroups", async (req, res) => {
   try {
     const personsData = await Person.find(); // Replace with your model    
-    // console.log("HAHAHAH");
     res.json({ success: true, personsData });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to fetch groups." });
@@ -481,7 +488,6 @@ app.post("/addspending", async (req, res) => {
         doc.sendto[username] = (doc.sendto[username] || 0) + splitAmount;
         doc.markModified("sendto");
       }
-      console.log("spend", doc);
       await doc.save();
     }));
 
@@ -628,7 +634,6 @@ app.delete("/deletespending/:id", async (req, res) => {
 // 📄 Get all spendings for a personId (group)
 app.get("/getspendings/:personId", async (req, res) => {
   try {
-    console.log("get method", req.params.personId);
     const spendings = await Spending.find({ personId: req.params.personId });
     res.json(spendings);
   } catch (err) {
@@ -670,7 +675,6 @@ app.post("/deletegroup", authorize, authenticate, async (req, res) => {
 // GET Settlement Data
 app.get("/api/getsettlement/:groupid/:username", async (req, res) => {
   const { groupid, username } = req.params;
-  // console.log(req.params);
   try {
     const record = await SettlementGroup.findOne({
       name: username,
@@ -682,7 +686,6 @@ app.get("/api/getsettlement/:groupid/:username", async (req, res) => {
     }
 
     res.json({ settlement: record });
-    console.log(res);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
@@ -694,10 +697,6 @@ app.post("/api/updatesettlementamount", async (req, res) => {
   try {
     const fromRecord = await SettlementGroup.findOne({ name: from, settlement_groupid: groupid });
     const toRecord = await SettlementGroup.findOne({ name: to, settlement_groupid: groupid });
-
-    console.log("Request Body:", req.body);
-    console.log("From Record (Before):", fromRecord);
-    console.log("To Record (Before):", toRecord);
 
     // Validate
     if (!fromRecord || typeof fromRecord.sendto[to] !== "number") {
@@ -720,8 +719,6 @@ app.post("/api/updatesettlementamount", async (req, res) => {
     fromRecord.markModified("sendto");
     toRecord.markModified("receivefrom");
 
-    console.log("From Record (After):", fromRecord);
-    console.log("To Record (After):", toRecord);
 
     // Save both
     await fromRecord.save();
@@ -765,8 +762,6 @@ app.post("/api/settleuser", async (req, res) => {
     await fromRecord.save();
     await toRecord.save();
 
-    console.log("From Record:", fromRecord);
-    console.log("To Record:", toRecord);
 
     res.json({ success: true });
   } catch (err) {
@@ -829,7 +824,6 @@ async function sendMessage(toEmail, message) {
       html: `<p>${message}</p>`
     });
 
-    console.log(`✅ Message sent to ${toEmail}:`, info.messageId);
   } catch (err) {
     console.error('❌ Error sending message:', err.message);
   }

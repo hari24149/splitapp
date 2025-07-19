@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Group Summary</title>
   <style>
     :root {
@@ -22,7 +23,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       font-family: 'Segoe UI', sans-serif;
       transition: background-color 0.3s, color 0.3s;
       width: 100%;
@@ -46,6 +48,7 @@
       align-items: center;
       padding: 0 20px;
       flex-wrap: wrap;
+      gap: 12px;
     }
 
     h1 {
@@ -65,7 +68,7 @@
     .group-card {
       background: var(--card-light);
       border-radius: var(--radius);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
       padding: 20px;
       border-left: 5px solid var(--primary);
       transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
@@ -80,7 +83,7 @@
 
     .group-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
     }
 
     .group-card h3 {
@@ -89,7 +92,8 @@
       margin-bottom: 8px;
     }
 
-    .group-card p, .group-card li {
+    .group-card p,
+    .group-card li {
       font-size: 0.95rem;
       line-height: 1.4;
     }
@@ -110,46 +114,13 @@
       transform: scale(1.05);
     }
 
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 26px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 34px;
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 4px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: var(--primary);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(24px);
+    #searchInput {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+      flex-grow: 1;
+      min-width: 180px;
     }
 
     .lds-ellipsis {
@@ -166,76 +137,63 @@
       height: 8px;
       border-radius: 50%;
       background: var(--primary);
-      animation-timing-function: cubic-bezier(0,1,1,0);
+      animation-timing-function: cubic-bezier(0, 1, 1, 0);
     }
 
-    .lds-ellipsis div:nth-child(1) {
-      left: 6px;
-      animation: lds-ellipsis1 0.6s infinite;
+    .lds-ellipsis div:nth-child(1) { left: 6px; animation: lds-ellipsis1 0.6s infinite; }
+    .lds-ellipsis div:nth-child(2) { left: 6px; animation: lds-ellipsis2 0.6s infinite; }
+    .lds-ellipsis div:nth-child(3) { left: 26px; animation: lds-ellipsis2 0.6s infinite; }
+    .lds-ellipsis div:nth-child(4) { left: 45px; animation: lds-ellipsis3 0.6s infinite; }
+
+    @keyframes lds-ellipsis1 { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    @keyframes lds-ellipsis3 { 0% { transform: scale(1); } 100% { transform: scale(0); } }
+    @keyframes lds-ellipsis2 { 0% { transform: translateX(0); } 100% { transform: translateX(19px); } }
+
+    /* Toggle Switch Style */
+    #theme-toggle {
+      width: 40px;
+      height: 20px;
+      position: relative;
+      appearance: none;
+      background: #c6c6c6;
+      outline: none;
+      border-radius: 20px;
+      transition: background 0.3s;
+      cursor: pointer;
     }
 
-    .lds-ellipsis div:nth-child(2) {
-      left: 6px;
-      animation: lds-ellipsis2 0.6s infinite;
+    #theme-toggle:checked {
+      background: #1976d2;
     }
 
-    .lds-ellipsis div:nth-child(3) {
-      left: 26px;
-      animation: lds-ellipsis2 0.6s infinite;
+    #theme-toggle::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      top: 1px;
+      left: 1px;
+      background: #fff;
+      transition: transform 0.3s;
     }
 
-    .lds-ellipsis div:nth-child(4) {
-      left: 45px;
-      animation: lds-ellipsis3 0.6s infinite;
-    }
-
-    @keyframes lds-ellipsis1 {
-      0% { transform: scale(0); }
-      100% { transform: scale(1); }
-    }
-
-    @keyframes lds-ellipsis3 {
-      0% { transform: scale(1); }
-      100% { transform: scale(0); }
-    }
-
-    @keyframes lds-ellipsis2 {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(19px); }
-    }
-
-    @media (max-width: 600px) {
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-      }
-
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      .btn {
-        width: 100%;
-      }
-
-      .group-card {
-        padding: 15px;
-      }
+    #theme-toggle:checked::before {
+      transform: translateX(20px);
     }
   </style>
 </head>
+
 <body>
+  <my-nav></my-nav>
 
   <div class="top-bar">
     <h1>All Groups</h1>
-    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-      <label class="switch" style="display: none;">
-        <input type="checkbox" id="theme-toggle">
-        <span class="slider"></span>
-      </label>
-      <button class="btn" onclick="location.href='usercreategroup.html'">Create Group</button>
-    </div>
+    <input type="text" id="searchInput" placeholder="Search groups..." />
+    <button class="btn" onclick="location.href='usercreategroup.html'">Create Group</button>
+    <!-- <label>
+      <input type="checkbox" id="theme-toggle"> Dark Mode
+    </label> -->
   </div>
 
   <div class="group-container" id="groupContainer">
@@ -243,7 +201,18 @@
   </div>
 
   <script>
+    // Apply theme early to avoid flicker
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'dark') {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.add('light');
+    }
+  </script>
+
+  <script>
     let currentUserName = null;
+    let allUserGroups = [];
 
     async function fetchCurrentUser() {
       try {
@@ -269,37 +238,8 @@
           return;
         }
 
-        const userGroups = groups.filter(group => group.users && Object.keys(group.users).includes(currentUserName));
-
-        container.innerHTML = "";
-
-        if (userGroups.length === 0) {
-          container.innerHTML = "<p>No groups found for you.</p>";
-          return;
-        }
-
-        userGroups.forEach(group => {
-          const card = document.createElement("div");
-          card.className = "group-card";
-
-          const usersListHTML = Object.entries(group.users || {})
-            .map(([name, amount]) => `<li><strong>${name}:</strong> ₹${amount.toFixed(2)}</li>`)
-            .join("");
-
-          card.innerHTML = `
-            <h3>${group.groupName}</h3>
-            <p><strong>Created By:</strong> ${group.groupCreatedBy}</p>
-            <p><strong>Total Amount:</strong> ₹${(group.totalAmount || 0).toFixed(2)}</p>
-            <p><strong>Users:</strong></p>
-            <ul>${usersListHTML}</ul>
-          `;
-
-          card.onclick = () => {
-            window.location.href = `/usergroupdetails.html?id=${group._id}`;
-          };
-
-          container.appendChild(card);
-        });
+        allUserGroups = groups.filter(group => group.users && Object.keys(group.users).includes(currentUserName));
+        renderGroups(allUserGroups);
 
       } catch (err) {
         console.error("Error loading groups", err);
@@ -307,22 +247,47 @@
       }
     }
 
+    function renderGroups(groups) {
+      const container = document.getElementById("groupContainer");
+      container.innerHTML = "";
+
+      if (groups.length === 0) {
+        container.innerHTML = "<p>No groups found for your search.</p>";
+        return;
+      }
+
+      groups.forEach(group => {
+        const card = document.createElement("div");
+        card.className = "group-card";
+
+        const usersListHTML = Object.entries(group.users || {})
+          .map(([name, amount]) => `<li><strong>${name}:</strong> ₹${amount.toFixed(2)}</li>`)
+          .join("");
+
+        card.innerHTML = `
+          <h3>${group.groupName}</h3>
+          <p><strong>Created By:</strong> ${group.groupCreatedBy}</p>
+          <p><strong>Total Amount:</strong> ₹${(group.totalAmount || 0).toFixed(2)}</p>
+          <p><strong>Users:</strong></p>
+          <ul>${usersListHTML}</ul>
+        `;
+
+        card.onclick = () => {
+          window.location.href = `/usergroupdetails.html?id=${group._id}`;
+        };
+
+        container.appendChild(card);
+      });
+    }
+
     async function sessionCheckAdmin() {
       try {
-        const response = await fetch('/sessioncheck', {
-          method: 'GET',
-          credentials: 'include'
-        });
-
+        const response = await fetch('/sessioncheck', { method: 'GET', credentials: 'include' });
         const data = await response.json();
 
-        if (data.loggedIn) {
-          if (data.role !== 'admin') {
-            console.log("User is not admin");
-          } else {
-            window.location.href = '/admin.html';
-          }
-        } else {
+        if (data.loggedIn && data.role === 'admin') {
+          window.location.href = '/admin.html';
+        } else if (!data.loggedIn) {
           window.location.href = '/login.html';
         }
       } catch (error) {
@@ -334,23 +299,59 @@
     document.addEventListener("DOMContentLoaded", async () => {
       await sessionCheckAdmin();
       await fetchCurrentUser();
-      loadGroups();
+      await loadGroups();
 
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = allUserGroups.filter(group =>
+          group.groupName.toLowerCase().includes(query)
+        );
+        renderGroups(filtered);
+      });
+
+      // Dark mode toggle
       const toggle = document.getElementById("theme-toggle");
       const theme = localStorage.getItem("theme");
-      document.body.classList.add(theme === "dark" ? "dark" : "light");
-      if(toggle) toggle.checked = theme === "dark";
 
-      if(toggle) {
-        toggle.addEventListener("change", () => {
-          const newTheme = toggle.checked ? "dark" : "light";
-          document.body.classList.remove("dark", "light");
-          document.body.classList.add(newTheme);
-          localStorage.setItem("theme", newTheme);
-        });
+      if (theme === "dark") {
+        toggle.checked = true;
+      } else {
+        toggle.checked = false;
       }
+
+      toggle.addEventListener("change", () => {
+        if (toggle.checked) {
+          document.body.classList.remove("light");
+          document.body.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.body.classList.remove("dark");
+          document.body.classList.add("light");
+          localStorage.setItem("theme", "light");
+        }
+      });
     });
+
+    class nav extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+      }
+
+      connectedCallback() {
+        this.loadComponent('/components/navbar.html');
+      }
+
+      async loadComponent(url) {
+        const res = await fetch(url);
+        const html = await res.text();
+        this.shadowRoot.innerHTML = html;
+      }
+    }
+
+    customElements.define('my-nav', nav);
   </script>
 
 </body>
 </html>
+  

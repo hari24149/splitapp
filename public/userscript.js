@@ -177,6 +177,7 @@ function openDeleteModal() {
         window.location.href = '/login.html';
       }
     }
+     window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
     async function changeEmail() {
     const currentEmail = document.getElementById('currentEmail').value;
     const newEmail = document.getElementById('newEmail').value;
@@ -192,7 +193,6 @@ function openDeleteModal() {
     alert(data.message);
     if (data.success) closeModal();
 }
-    window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
 
 
   class MyHeader extends HTMLElement {

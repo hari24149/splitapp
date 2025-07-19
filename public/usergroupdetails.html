@@ -2,326 +2,390 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Group Details</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      padding: 40px;
+      padding: 20px;
       background: #f5f7fa;
       color: #333;
+      margin: 0;
     }
     .container {
       max-width: 800px;
       margin: auto;
       background: white;
-      padding: 30px;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     }
-    h2, h3 {
-      color: #1976d2;
+    h2, h3 { color: #1976d2; }
+    .label { font-weight: bold; color: #555; }
+    .value { color: #222; }
+    ul { padding-left: 20px; }
+    .btn-primary, .btn-delete {
+      background-color: #1976d2;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 5px 5px 5px 0;
     }
-    .label {
-      font-weight: bold;
-      color: #555;
-    }
-    .value {
-      color: #222;
-    }
-    ul {
-      padding-left: 20px;
-    }
+    .btn-primary:hover { background-color: #1256ad; }
+    .btn-delete:hover { background-color: red; }
+    .button-group { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
     .spending-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 15px;
+      display: block;
+      overflow-x: auto;
     }
-    .spending-table th,
-    .spending-table td {
+    .spending-table th, .spending-table td {
       border: 1px solid #ccc;
-      padding: 10px;
+      padding: 8px;
       text-align: left;
+      white-space: nowrap;
     }
-    .spending-table th {
-      background-color: #1976d2;
-      color: white;
-    }
-    .actions button {
-      margin-right: 5px;
-    }
-    .btn-primary {
-      background-color: #1976d2;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      margin-top: 20px;
-    }
-    .btn-primary:hover {
-      background-color: #1256ad;
-    }
-    .btn-delete {
-      background-color: #1976d2;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-      margin-top: 20px;
-    }
-    .btn-delete:hover {
-      background-color: red;
-    }
+    .spending-table th { background-color: #1976d2; color: white; }
+
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.4);
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.4);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 999;
     }
-    .modal-overlay.active {
-      display: flex;
-    }
+    .modal-overlay.active { display: flex; }
     .modal {
       background: white;
-      padding: 30px;
+      padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
       width: 90%;
-      max-width: 500px;
-      animation: fadeIn 0.3s ease;
-    }
-    @keyframes fadeIn {
-      from {
-        transform: scale(0.95);
-        opacity: 0;
-      }
-      to {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-    .modal h3 {
-      margin-top: 0;
-      color: #1976d2;
-    }
-    .modal label {
-      display: block;
-      margin-top: 10px;
+      max-width: 400px;
     }
     .modal input {
-      padding: 10px;
       width: 100%;
+      padding: 8px;
       margin-top: 5px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 4px;
     }
     .modal button {
-      margin-top: 15px;
-      padding: 10px 15px;
-      background: #1976d2;
-      color: white;
+      margin-top: 10px;
+      border-radius: 50px;
+      padding: 10px 20px;
       border: none;
-      border-radius: 6px;
       cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .modal button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
     }
     .modal .cancel {
-      background: red;
-      margin-left: 10px;
+      background: #f44336;
+      color: white;
+      margin-left: 5px;
     }
+    .modal .cancel:hover { background: #d32f2f; }
+    .modal button:not(.cancel) {
+      background: #1976d2;
+      color: white;
+    }
+    .modal button:not(.cancel):hover { background: #1256ad; }
+
+    /* Dark mode styles */
+    body.dark {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    body.dark .container { background: #1e1e1e; }
+    body.dark h2, body.dark h3 { color: #90caf9; }
+    body.dark .label { color: #bbb; }
+    body.dark .value { color: #fff; }
+    body.dark .btn-primary { background-color: #90caf9; color: #000; }
+    body.dark .btn-primary:hover { background-color: #64b5f6; }
+    body.dark .btn-delete:hover { background-color: #f44336; }
+    body.dark .spending-table th {
+      background-color: #333;
+      color: #90caf9;
+    }
+    body.dark .modal {
+      background: #1e1e1e;
+      color: #fff;
+    }
+    body.dark .modal input {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+    }
+
+    /* Loading Overlay */
+    #loadingOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    body.dark #loadingOverlay {
+      background: rgba(18,18,18,0.8);
+    }
+
+    .dots-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transform: scale(1);
+    }
+    .dot {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background-color: #1976d2;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    .dot:nth-child(1) { animation-delay: -0.3s; }
+    .dot:nth-child(2) { animation-delay: -0.1s; }
+    .dot:nth-child(3) { animation-delay: 0.1s; }
+    .dot:nth-child(4) { animation-delay: 0.3s; }
+    .dot:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes pulse {
+      0% { transform: scale(0.8); background-color: #b3d4fc; }
+      50% { transform: scale(1.2); background-color: #6793fb; }
+      100% { transform: scale(0.8); background-color: #b3d4fc; }
+    }
+
     @media (max-width: 600px) {
-      body {
-        padding: 20px;
-      }
+      .dots-container { transform: scale(0.7); }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2 id="groupName">Group Name</h2>
-    <p><span class="label">Description:</span> <span class="value" id="groupDesc"></span></p>
-    <p><span class="label">Created By:</span> <span class="value" id="groupCreatedBy"></span></p>
-    <p><span class="label">Form Filling Date:</span> <span class="value" id="formFillingDate"></span></p>
-    <p><span class="label">Number of Persons:</span> <span class="value" id="numPersons"></span></p>
-    <p><span class="label">Total Amount:</span> ₹<span class="value" id="totalAmount"></span></p>
 
-    <h3>Users and Their Contributions</h3>
-    <ul id="userList"></ul>
+<!-- Loading Overlay -->
+<div id="loadingOverlay">
+  <section class="dots-container">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </section>
+</div>
 
+<div class="container" style="display: none;" id="contentContainer">
+  <h2 id="groupName">Group Name</h2>
+  <p><span class="label">Description:</span> <span class="value" id="groupDesc"></span></p>
+  <p><span class="label">Created By:</span> <span class="value" id="groupCreatedBy"></span></p>
+  <p><span class="label">Form Filling Date:</span> <span class="value" id="formFillingDate"></span></p>
+  <p><span class="label">Number of Persons:</span> <span class="value" id="numPersons"></span></p>
+  <p><span class="label">Total Amount:</span> ₹<span class="value" id="totalAmount"></span></p>
+
+  <h3>Users and Their Contributions</h3>
+  <ul id="userList"></ul>
+
+  <div class="button-group">
     <button class="btn-primary" onclick="openModal()">Add Expense</button>
     <button class="btn-primary" id="viewSettlementsBtn">View Settlements</button>
+  </div>
 
-    <h3>All Spendings</h3>
-    <table class="spending-table">
-      <thead>
+  <h3>All Spendings</h3>
+  <table class="spending-table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Amount</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="spendingList"></tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="formTitle">Add a Spending</h3>
+    <form id="spendingForm">
+      <label>Title:</label>
+      <input type="text" id="spendingTitle" required>
+      <label>Date:</label>
+      <input type="date" id="spendingDate" required>
+      <label>Amount:</label>
+      <input type="number" id="spendingAmount" required>
+      <button type="submit" id="submitBtn">Add Spending</button>
+      <button type="button" class="cancel" onclick="closeModal()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const personId = new URLSearchParams(location.search).get("id");
+  let currentUser = "";
+  let editingId = null;
+
+  function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+  }
+  function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+    document.getElementById('contentContainer').style.display = 'block';
+  }
+
+  function applyTheme(theme) {
+    document.body.classList.remove('light', 'dark');
+    document.body.classList.add(theme);
+    localStorage.setItem("theme", theme);
+  }
+
+  async function sessionCheckAdmin() {
+    const response = await fetch('/sessioncheck', { credentials: 'include' });
+    const data = await response.json();
+    if (!data.loggedIn) window.location.href = '/login.html';
+  }
+
+  async function getCurrentUser() {
+    const res = await fetch("/getUserDetails");
+    const user = await res.json();
+    currentUser = user.name;
+  }
+
+  async function fetchPerson() {
+    const res = await fetch(`/getgroup/${personId}`);
+    const data = await res.json();
+    document.getElementById("groupName").textContent = data.groupName;
+    document.getElementById("groupDesc").textContent = data.groupDesc;
+    document.getElementById("groupCreatedBy").textContent = data.groupCreatedBy;
+    document.getElementById("formFillingDate").textContent = data.formFillingDate;
+    document.getElementById("numPersons").textContent = data.numPersons;
+    document.getElementById("totalAmount").textContent = data.totalAmount.toFixed(2);
+
+    const userList = document.getElementById("userList");
+    userList.innerHTML = "";
+    for (const [name, amount] of Object.entries(data.users)) {
+      userList.innerHTML += `<li><strong>${name}:</strong> ₹${amount.toFixed(2)}</li>`;
+    }
+  }
+
+  async function loadSpendings() {
+    const res = await fetch(`/getspendings/${personId}`);
+    const spendings = await res.json();
+    const tableBody = document.getElementById("spendingList");
+    tableBody.innerHTML = "";
+    spendings.forEach(item => {
+      const isUserRecord = item.username === currentUser;
+      tableBody.innerHTML += `
         <tr>
-          <th>User</th>
-          <th>Title</th>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="spendingList"></tbody>
-    </table>
-  </div>
-
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <h3 id="formTitle">Add a Spending</h3>
-      <form id="spendingForm">
-        <label for="spendingTitle">Title:</label>
-        <input type="text" id="spendingTitle" required />
-
-        <label for="spendingDate">Date:</label>
-        <input type="date" id="spendingDate" required />
-
-        <label for="spendingAmount">Amount:</label>
-        <input type="number" id="spendingAmount" required />
-
-        <button type="submit" id="submitBtn">Add Spending</button>
-        <button type="button" class="cancel" onclick="closeModal()">Cancel</button>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    const personId = new URLSearchParams(location.search).get("id");
-    let editingId = null;
-    let currentUser = "";
-    let groupCreator = "";
-
-    async function getCurrentUser() {
-      const res = await fetch("/getUserDetails");
-      const user = await res.json();
-      currentUser = user.name;
-    }
-
-    async function fetchPerson() {
-      const res = await fetch(`/getgroup/${personId}`);
-      const data = await res.json();
-      groupCreator = data.groupCreatedBy;
-
-      document.getElementById("groupName").textContent = data.groupName;
-      document.getElementById("groupDesc").textContent = data.groupDesc;
-      document.getElementById("groupCreatedBy").textContent = data.groupCreatedBy;
-      document.getElementById("formFillingDate").textContent = data.formFillingDate;
-      document.getElementById("numPersons").textContent = data.numPersons;
-      document.getElementById("totalAmount").textContent = data.totalAmount.toFixed(2);
-
-      const userList = document.getElementById("userList");
-      userList.innerHTML = "";
-      for (const [name, amount] of Object.entries(data.users)) {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${name}${name === groupCreator ? " (Created By)" : ""}:</strong> ₹${amount.toFixed(2)}`;
-        userList.appendChild(li);
-      }
-    }
-
-    async function loadSpendings() {
-      const res = await fetch(`/getspendings/${personId}`);
-      const spendings = await res.json();
-      const container = document.getElementById("spendingList");
-      container.innerHTML = "";
-
-      spendings.forEach(item => {
-        const tr = document.createElement("tr");
-        const isUserRecord = item.username === currentUser;
-        tr.innerHTML = `
           <td>${item.username}</td>
           <td>${item.title}</td>
           <td>${item.date}</td>
           <td>₹${item.amount.toFixed(2)}</td>
-          <td class="actions">
-            ${isUserRecord ? `
-              <button class="btn-primary" onclick="editSpending('${item._id}', '${item.title}', '${item.date}', ${item.amount})">Edit</button>
-              <button class="btn-delete" onclick="deleteSpending('${item._id}')">Delete</button>
-            ` : `<span style="color:#aaa;">NO ACCESS</span>`}
+          <td>${isUserRecord ? `
+            <button class="btn-primary" onclick="editSpending('${item._id}', '${item.title}', '${item.date}', ${item.amount})">Edit</button>
+            <button class="btn-delete" onclick="deleteSpending('${item._id}')">Delete</button>` : `<span style="color:#aaa;">No Access</span>`}
           </td>
-        `;
-        container.appendChild(tr);
-      });
-    }
+        </tr>`;
+    });
+  }
 
-    function openModal() {
-      document.getElementById("modalOverlay").classList.add("active");
-    }
+  function openModal() {
+    document.getElementById("modalOverlay").classList.add("active");
+    setTimeout(() => document.getElementById("spendingTitle").focus(), 100);
+  }
 
-    function closeModal() {
-      document.getElementById("modalOverlay").classList.remove("active");
-      resetForm();
-    }
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("active");
+    resetForm();
+  }
 
-    function editSpending(id, title, date, amount) {
-      editingId = id;
-      document.getElementById("spendingTitle").value = title;
-      document.getElementById("spendingDate").value = date;
-      document.getElementById("spendingAmount").value = amount;
-      document.getElementById("formTitle").textContent = "Edit Spending";
-      document.getElementById("submitBtn").textContent = "Update Spending";
-      openModal();
-    }
+  function editSpending(id, title, date, amount) {
+    editingId = id;
+    document.getElementById("spendingTitle").value = title;
+    document.getElementById("spendingDate").value = date;
+    document.getElementById("spendingAmount").value = amount;
+    document.getElementById("formTitle").textContent = "Edit Spending";
+    document.getElementById("submitBtn").textContent = "Update Spending";
+    openModal();
+  }
 
-    function resetForm() {
-      editingId = null;
-      document.getElementById("formTitle").textContent = "Add a Spending";
-      document.getElementById("submitBtn").textContent = "Add Spending";
-      document.getElementById("spendingForm").reset();
-      document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
-    }
+  function resetForm() {
+    editingId = null;
+    document.getElementById("formTitle").textContent = "Add a Spending";
+    document.getElementById("submitBtn").textContent = "Add Spending";
+    document.getElementById("spendingForm").reset();
+    document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
+  }
 
-    document.getElementById("spendingForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+  document.getElementById("spendingForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      personId,
+      username: currentUser,
+      title: document.getElementById("spendingTitle").value,
+      date: document.getElementById("spendingDate").value,
+      amount: parseFloat(document.getElementById("spendingAmount").value)
+    };
+    const url = editingId ? `/updatespending/${editingId}` : "/addspending";
+    const method = editingId ? "PUT" : "POST";
 
-      const payload = {
-        personId,
-        username: currentUser,
-        title: document.getElementById("spendingTitle").value,
-        date: document.getElementById("spendingDate").value,
-        amount: parseFloat(document.getElementById("spendingAmount").value)
-      };
+    await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    closeModal();
+    loadSpendings();
+  });
 
-      const url = editingId ? `/updatespending/${editingId}` : "/addspending";
-      const method = editingId ? "PUT" : "POST";
-
-      await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      closeModal();
+  async function deleteSpending(id) {
+    if (confirm("Are you sure to delete?")) {
+      await fetch(`/deletespending/${id}`, { method: "DELETE" });
       loadSpendings();
-      window.location.reload();
-    });
-
-    async function deleteSpending(id) {
-      if (confirm("Are you sure you want to delete this?")) {
-        await fetch(`/deletespending/${id}`, { method: "DELETE" });
-        loadSpendings();
-      }
     }
+  }
 
-    document.getElementById("viewSettlementsBtn").addEventListener("click", () => {
-      window.location.href = `/showusersettlements.html?groupid=${personId}&name=${currentUser}`;
-    });
+  document.getElementById("viewSettlementsBtn").addEventListener("click", () => {
+    window.location.href = `/showusersettlements.html?groupid=${personId}&name=${currentUser}`;
+  });
 
-    (async () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    showLoading();
+    try {
+      const storedTheme = localStorage.getItem("theme") || "light";
+      applyTheme(storedTheme);
+
+      await sessionCheckAdmin();
       await getCurrentUser();
       await fetchPerson();
       await loadSpendings();
       document.getElementById("spendingDate").value = new Date().toISOString().split("T")[0];
-    })();
-  </script>
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      hideLoading();
+    }
+  });
+</script>
+
 </body>
 </html>
