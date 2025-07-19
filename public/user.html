@@ -420,18 +420,18 @@
       border-radius: 10px;
       z-index: 1000;
       box-shadow: 0 0 10px #000;
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    margin: 10% auto;
-    padding: 20px;
-    width: 100%;
-    max-width: 500px;
-    border-radius: 10px;
-    position: relative;
-    z-index: 10;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      margin: 10% auto;
+      padding: 20px;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 10px;
+      position: relative;
+      z-index: 10;
       left: 0;
       top: -79%;
-}
+    }
 
     #changeEmailModal input {
       padding: 8px;
@@ -459,7 +459,7 @@
   </div>
 
   <div class="layout">
-    <nav class="sidebar" id="sidebar">  
+    <nav class="sidebar" id="sidebar">
       <h2>User</h2>
       <ul>
         <li><a href="#" class="active" onclick="showSection('home', this)">Home</a></li>
@@ -477,7 +477,8 @@
 
       <section id="home" class="section active">
         <!-- <p>Welcome to your user dashboard 😊</p> -->
-        <my-header></my-header>
+      <div id="navbar-placeholder"></div>
+
       </section>
 
       <section id="profile" class="section">
@@ -486,7 +487,7 @@
         <p>Email: <span id="user-email">Loading...</span></p>
         <button onclick="editProfile()">Edit Password</button>
         <button onclick="openDeleteModal()">Delete Account </button>
-        <button onclick="openModal()">Change Email</button> 
+        <button onclick="openModal()">Change Email</button>
       </section>
 
       <div id="delete-modal" class="modal" style="display:none;">
@@ -589,14 +590,27 @@
     </div>
   </div>
   <!-- Change Email Modal -->
-<div id="changeEmailModal" style="display:none; background:#1e1e1e; padding:20px; border-radius:10px; width:300px; color:white;">
+  <div id="changeEmailModal"
+    style="display:none; background:#1e1e1e; padding:20px; border-radius:10px; width:300px; color:white;">
     <h3>Change Email</h3>
     <input type="email" id="currentEmail" placeholder="Current Email" style="width:100%; margin:8px 0;"><br>
     <input type="email" id="newEmail" placeholder="New Email" style="width:100%; margin:8px 0;"><br>
     <button onclick="changeEmail()">Change</button>
     <button onclick="closeModal('changeEmailModal')">Cancel</button>
-</div>
- <script src="userscript.js"></script>
+  </div>
+  <script>
+    fetch('components/userdashboard.html')
+      .then(res => res.text())
+    .then(data => {
+      document.getElementById('navbar-placeholder').innerHTML = data;
+      if (typeof initNavbar === 'function') initNavbar();
+      startClock?.();
+      loadUserDetails?.();
+    });
+  </script>
+
+  <script src="dashboard.js"></script>
+  <script src="userscript.js"></script>
 </body>
 
 </html>

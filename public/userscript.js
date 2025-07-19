@@ -193,24 +193,3 @@ function openDeleteModal() {
     alert(data.message);
     if (data.success) closeModal();
 }
-
-
-  class MyHeader extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-      }
-
-      connectedCallback() {
-        this.loadComponent('/components/userdashboard.html');
-      }
-
-      async loadComponent(url) {
-        const res = await fetch(url);
-        const html = await res.text();
-        this.shadowRoot.innerHTML = html;
-      }
-      
-    }
-
-    customElements.define('my-header', MyHeader);
