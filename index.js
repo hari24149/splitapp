@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const path = require("path");
 const nodemailer = require('nodemailer');
-const { User, Person, Spending, SettlementGroup } = require("./models/models");
+const { User, Person, Spending, SettlementGroup,SettlementTransaction} = require("./models/models");
 const statusMonitor = require('express-status-monitor');
 dotenv.config();
 
@@ -280,9 +280,19 @@ app.post("/delete-account", authorize, authenticate, async (req, res) => {
   try {
     const { password } = req.body;
     const user = await User.findById(req.session?.user?._id);
-    const email = user.email;
+
     if (!user) {
       return res.status(401).json({ success: false, message: "User not found" });
+    }
+
+    // ✅ Check if user created any groups
+    const createdGroups = await Person.find({ groupCreatedBy: user.name });
+
+    if (createdGroups.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete account. You have created groups. Please delete your groups first."
+      });
     }
 
     const match = await bcrypt.compare(password, user.password);
@@ -291,19 +301,21 @@ app.post("/delete-account", authorize, authenticate, async (req, res) => {
     }
 
     await User.findByIdAndDelete(user._id);
+
     req.session.destroy(() => {
       res.status(200).json({ success: true, message: "Account deleted successfully" });
-      sendMessage(email, `
-      Your account has been deleted successfully.
 
-      We're sorry to see you go! We'd love to know why you chose to leave so we can improve.
+      sendMessage(user.email, `
+        Your account has been deleted successfully.
 
-      Please share your feedback here: https://ww.app.feedback.com
+        We're sorry to see you go! We'd love to know why you chose to leave so we can improve.
 
-      Thank you for being with us.
+        Please share your feedback here: https://ww.app.feedback.com
+
+        Thank you for being with us.
       `);
-
     });
+
   } catch (error) {
     console.error("Delete error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -767,6 +779,35 @@ app.post("/api/settleuser", async (req, res) => {
   } catch (err) {
     console.error("Settle Error:", err);
     res.status(500).json({ success: false });
+  }
+});
+
+
+//Transactions for given button API's
+
+app.post("/api/transaction", async (req, res) => {
+  const { groupid, from, to, amount } = req.body;
+  try {
+    const transaction = new SettlementTransaction({ groupid, from, to, amount });
+    await transaction.save();
+    res.status(201).json({ message: "Transaction saved", transaction });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save transaction" });
+  }
+});
+
+// Get all transactions for a user in a group
+app.get("/api/settlement/transactions/:groupid/:username", async (req, res) => {
+  const { groupid, username } = req.params;
+
+  try {
+    const transactions = await SettlementTransaction.find({
+      groupid: groupid,
+      $or: [{ from: username }, { to: username }]
+    });
+    res.json(transactions);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

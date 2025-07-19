@@ -67,10 +67,24 @@ const SettlementGroupSchema = new mongoose.Schema({
 
 const SettlementGroup = mongoose.model('SettlementGroup', SettlementGroupSchema);
 
+const SettlementTransactionSchema = new mongoose.Schema({
+  groupid: { type: String, required: true },
+  from: { type: String, required: true },
+  to: { type: String, required: true },
+  amount: { type: Number, required: true },
+  date: { type: Date, default: Date.now }
+});
+
+const SettlementTransaction = mongoose.model("SettlementTransaction", SettlementTransactionSchema);
+
+
+
+
 // ✅ Export both models as properties
 module.exports = {
   User,
   Person,
   Spending,
-  SettlementGroup
+  SettlementGroup,
+  SettlementTransaction
 };

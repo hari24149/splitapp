@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -12,6 +12,8 @@
       margin: 0; padding: 0;
       background: linear-gradient(to right, #f7f8fa, #e2eafc);
       color: #333;
+      margin:0;
+      padding:0;
     }
     h2 {
       text-align: center;
@@ -108,8 +110,6 @@
   </style>
 </head>
 <body>
-
-<!-- Loading -->
 <div id="loadingOverlay">
   <section class="dots-container">
     <div class="dot"></div>
@@ -170,12 +170,20 @@
       // User card
       const card = document.createElement("div");
       card.className = "user-card";
+
+      let giveButtonHTML = '';
+      if (send > receive) {
+        giveButtonHTML = `
+          <input type="number" id="amount-${person}" placeholder="Enter amount to give">
+          <button onclick="giveMoney('${person}', ${send})">Give</button>
+        `;
+      }
+
       card.innerHTML = `
         <h3>${person}</h3>
         <p>${person} spent on you: <strong>₹${send}</strong></p>
         <p>Your spending on ${person}: <strong>₹${receive}</strong></p>
-        <input type="number" id="amount-${person}" placeholder="Enter amount to give">
-        <button onclick="giveMoney('${person}', ${send})">Give</button>
+        ${giveButtonHTML}
       `;
       container.appendChild(card);
     });
@@ -198,32 +206,334 @@
     alert("Amount updated.");
     loadSettlements();
   }
-   async function sessionCheckAdmin() {
-      try {
-        const response = await fetch('/sessioncheck', {
-          method: 'GET',
-          credentials: 'include',
-        });
 
-        const data = await response.json();
+  async function sessionCheckAdmin() {
+    try {
+      const response = await fetch('/sessioncheck', {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-        if (data.loggedIn) {
-          if (data.role !== 'admin') {
-            console.log("user")
-          } else {
-            window.location.href = '/admin.html';
-          }
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        if (data.role !== 'admin') {
+          console.log("user");
         } else {
-          window.location.href = '/login.html';
+          window.location.href = '/admin.html';
         }
-      } catch (error) {
-        console.error("Error checking session:", error);
+      } else {
         window.location.href = '/login.html';
       }
+    } catch (error) {
+      console.error("Error checking session:", error);
+      window.location.href = '/login.html';
     }
-     window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
+  }
 
+  window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
   window.onload = loadSettlements;
+</script>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Settlements</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0; padding: 0;
+      background: linear-gradient(to right, #f7f8fa, #e2eafc);
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 2rem;
+    }
+    #settlementsContainer {
+      max-width: 900px; margin: 20px auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .user-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+      transition: 0.3s;
+    }
+    .user-card:hover { transform: translateY(-5px); }
+    .user-card h3 { margin: 0 0 10px 0; color: #2c3e50; }
+    .user-card p { margin: 8px 0; }
+    .user-card strong { color: #1abc9c; }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    button:hover { background: #2980b9; }
+    #netSummary {
+      width: 90%;
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    #netSummary table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #netSummary th, #netSummary td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    #netSummary th {
+      background: #3498db;
+      color: white;
+    }
+    #transactionList {
+      max-width: 900px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    #transactionList table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #transactionList th, #transactionList td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    #transactionList th {
+      background: #1abc9c;
+      color: white;
+    }
+    /* Loading Overlay */
+    #loadingOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .dots-container {
+      display: flex; gap: 12px;
+    }
+    .dot {
+      width: 16px; height: 16px;
+      background: #3498db;
+      border-radius: 50%;
+      animation: pulse 1.2s infinite ease-in-out;
+    }
+    .dot:nth-child(1) { animation-delay: -0.3s; }
+    .dot:nth-child(2) { animation-delay: -0.15s; }
+    .dot:nth-child(3) { animation-delay: 0s; }
+    .dot:nth-child(4) { animation-delay: 0.15s; }
+    .dot:nth-child(5) { animation-delay: 0.3s; }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(0.8); background: #b3d4fc; }
+      50% { transform: scale(1.2); background: #3498db; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadingOverlay">
+  <section class="dots-container">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </section>
+</div>
+
+<h2>Net Settlement Summary</h2>
+<div id="netSummary">
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>You Send</th>
+        <th>You Receive</th>
+      </tr>
+    </thead>
+    <tbody id="netSettlementBody"></tbody>
+  </table>
+</div>
+
+<h2>Your Settlements</h2>
+<div id="settlementsContainer"></div>
+
+<h2>Your Give Transactions</h2>
+<div id="transactionList"></div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get("name");
+  const groupid = urlParams.get("groupid");
+
+  async function loadSettlements() {
+    const res = await fetch(`/api/getsettlement/${groupid}/${username}`);
+    const { settlement } = await res.json();
+
+    const sendto = settlement.sendto || {};
+    const receivefrom = settlement.receivefrom || {};
+    const container = document.getElementById("settlementsContainer");
+    const tableBody = document.getElementById("netSettlementBody");
+    container.innerHTML = "";
+    tableBody.innerHTML = "";
+
+    const users = new Set([...Object.keys(sendto), ...Object.keys(receivefrom)]);
+    users.forEach(person => {
+      const send = sendto[person] || 0;
+      const receive = receivefrom[person] || 0;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${person}</td>
+        <td>${(send - receive > 0) ? (send - receive).toFixed(2) : '-'}</td>
+        <td>${(receive - send > 0) ? (receive - send).toFixed(2) : '-'}</td>
+      `;
+      tableBody.appendChild(row);
+
+      const card = document.createElement("div");
+      card.className = "user-card";
+
+      let giveButtonHTML = '';
+      if (send > receive) {
+        giveButtonHTML = `
+          <input type="number" id="amount-${person}" placeholder="Enter amount to give">
+          <button onclick="giveMoney('${person}', ${send - receive})">Give</button>
+        `;
+      }
+
+      card.innerHTML = `
+        <h3>${person}</h3>
+        <p>${person} spent on you: <strong>₹${send}</strong></p>
+        <p>Your spending on ${person}: <strong>₹${receive}</strong></p>
+        ${giveButtonHTML}
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+
+  async function giveMoney(to, maxAmount) {
+    const input = document.getElementById(`amount-${to}`);
+    const amount = parseFloat(input.value);
+    if (!amount || amount <= 0) return alert("Enter a valid amount.");
+    if (amount > maxAmount) return alert("Cannot give more than owed.");
+
+    // Save transaction in DB
+    await fetch("/api/transaction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from: username, to, amount, groupid })
+    });
+
+    // Update settlement balances
+    await fetch("/api/updatesettlementamount", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ from: username, to, amount, groupid })
+    });
+
+    alert("Amount updated.");
+    loadSettlements();
+    loadTransactions();
+  }
+
+  async function loadTransactions() {
+  const res = await fetch(`/api/settlement/transactions/${groupid}/${username}`);
+  const transactions = await res.json(); // it's a raw array
+
+  const container = document.getElementById("transactionList");
+
+  if (!transactions.length) {
+    container.innerHTML = "<p style='text-align:center;'>No transactions yet.</p>";
+    return;
+  }
+
+  container.innerHTML = `
+    <table border="1" style="width:100%; text-align:center;">
+      <thead>
+        <tr>
+          <th>From</th>
+          <th>To</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${transactions.map(tx => `
+          <tr>
+            <td>${tx.from}</td>
+            <td>${tx.to}</td>
+            <td>${tx.amount}</td>
+            <td>${new Date(tx.date).toLocaleString()}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+  async function sessionCheckAdmin() {
+    try {
+      const response = await fetch('/sessioncheck', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      if (!data.loggedIn) return (window.location.href = '/login.html');
+      if (data.role === 'admin') window.location.href = '/admin.html';
+    } catch (error) {
+      console.error("Error checking session:", error);
+      window.location.href = '/login.html';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', sessionCheckAdmin);
+  window.onload = () => {
+    loadSettlements();
+    loadTransactions();
+  };
 </script>
 
 </body>
