@@ -12,6 +12,7 @@
       background: #f5f7fa;
       color: #333;
       margin: 0;
+      padding: 0;
     }
     .container {
       max-width: 800px;
@@ -179,7 +180,8 @@
   </style>
 </head>
 <body>
-
+  <nav id="navbar-placeholder"></nav>
+  <br>
 <!-- Loading Overlay -->
 <div id="loadingOverlay">
   <section class="dots-container">
@@ -385,7 +387,17 @@
       hideLoading();
     }
   });
-</script>
+    fetch('components/nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('navbar-placeholder').innerHTML = data;
+      if (typeof initNavbar === 'function') {
+        initNavbar();
+      }
+    });
+  </script>
+
+  <script src="nav.js"></script>
 
 </body>
 </html>

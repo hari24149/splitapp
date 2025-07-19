@@ -140,14 +140,55 @@
       animation-timing-function: cubic-bezier(0, 1, 1, 0);
     }
 
-    .lds-ellipsis div:nth-child(1) { left: 6px; animation: lds-ellipsis1 0.6s infinite; }
-    .lds-ellipsis div:nth-child(2) { left: 6px; animation: lds-ellipsis2 0.6s infinite; }
-    .lds-ellipsis div:nth-child(3) { left: 26px; animation: lds-ellipsis2 0.6s infinite; }
-    .lds-ellipsis div:nth-child(4) { left: 45px; animation: lds-ellipsis3 0.6s infinite; }
+    .lds-ellipsis div:nth-child(1) {
+      left: 6px;
+      animation: lds-ellipsis1 0.6s infinite;
+    }
 
-    @keyframes lds-ellipsis1 { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-    @keyframes lds-ellipsis3 { 0% { transform: scale(1); } 100% { transform: scale(0); } }
-    @keyframes lds-ellipsis2 { 0% { transform: translateX(0); } 100% { transform: translateX(19px); } }
+    .lds-ellipsis div:nth-child(2) {
+      left: 6px;
+      animation: lds-ellipsis2 0.6s infinite;
+    }
+
+    .lds-ellipsis div:nth-child(3) {
+      left: 26px;
+      animation: lds-ellipsis2 0.6s infinite;
+    }
+
+    .lds-ellipsis div:nth-child(4) {
+      left: 45px;
+      animation: lds-ellipsis3 0.6s infinite;
+    }
+
+    @keyframes lds-ellipsis1 {
+      0% {
+        transform: scale(0);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes lds-ellipsis3 {
+      0% {
+        transform: scale(1);
+      }
+
+      100% {
+        transform: scale(0);
+      }
+    }
+
+    @keyframes lds-ellipsis2 {
+      0% {
+        transform: translateX(0);
+      }
+
+      100% {
+        transform: translateX(19px);
+      }
+    }
 
     /* Toggle Switch Style */
     #theme-toggle {
@@ -182,11 +223,11 @@
       transform: translateX(20px);
     }
   </style>
+  <!-- <link rel="stylesheet" href="nav.css">  -->
 </head>
 
 <body>
-  <my-nav></my-nav>
-
+  <nav id="navbar-placeholder"></nav>
   <div class="top-bar">
     <h1>All Groups</h1>
     <input type="text" id="searchInput" placeholder="Search groups..." />
@@ -197,7 +238,12 @@
   </div>
 
   <div class="group-container" id="groupContainer">
-    <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>
+    <div class="lds-ellipsis">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
   </div>
 
   <script>
@@ -332,26 +378,20 @@
       });
     });
 
-    class nav extends HTMLElement {
-      constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-      }
 
-      connectedCallback() {
-        this.loadComponent('/components/navbar.html');
+  fetch('components/nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('navbar-placeholder').innerHTML = data;
+      if (typeof initNavbar === 'function') {
+        initNavbar();
       }
-
-      async loadComponent(url) {
-        const res = await fetch(url);
-        const html = await res.text();
-        this.shadowRoot.innerHTML = html;
-      }
-    }
-
-    customElements.define('my-nav', nav);
+    });
   </script>
 
+  <script src="nav.js"></script>
+
+
 </body>
+
 </html>
-  

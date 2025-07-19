@@ -28,6 +28,8 @@
       color: var(--text-dark);
       transition: background-color 0.3s ease, color 0.3s ease;
       padding: 40px 20px;
+      margin: 0;
+      padding: 0;
     }
 
     body.dark {
@@ -92,8 +94,9 @@
   </style>
 </head>
 <body>
-
-<div class="toggle-container">
+<nav id="navbar-placeholder"></nav>
+<br>
+<div style="display: none;" class="toggle-container">
   <label>
     <input type="checkbox" id="theme-toggle"> Toggle Dark Mode
   </label>
@@ -325,7 +328,18 @@
     sessionCheckUser();
     await Promise.all([loadUsers(), loadGroupCreators(), loadExistingGroupNames()]);
   };
-</script>
+    fetch('components/nav.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('navbar-placeholder').innerHTML = data;
+      if (typeof initNavbar === 'function') {
+        initNavbar();
+      }
+    });
+  </script>
+
+  <script src="nav.js"></script>
+
 
 </body>
 </html>
