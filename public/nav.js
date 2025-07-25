@@ -50,15 +50,16 @@ function initNavbar() {
   }, true);
 
   // ✅ Fetch user details and update logo
-  fetch('/getUserDetails')
-    .then(res => res.json())
-    .then(data => {
-      const logoSpan = document.querySelector('.logo');
-      if (logoSpan && data.name) {
-        logoSpan.textContent = data.name;
-      }
-    })
-    .catch(err => {
-      console.error('Failed to load user details:', err);
-    });
+  // fetch('/getUserDetails')
+  //   .then(res => res.json())
+  //   .then(data => {
+  //     const logoSpan = document.querySelector('.logo');
+  //     if (logoSpan && data.name) {
+  //       logoSpan.textContent = data.name;
+  //     }
+  //   })
+  //   .catch(err => {
+  //     console.error('Failed to load user details:', err);
+  //   });
+  document.querySelector('.logo').textContent = localStorage.getItem("uname");
 }
