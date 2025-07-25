@@ -454,6 +454,7 @@
   }
 
   async function giveMoney(to, maxAmount) {
+    document.getElementById('loadingOverlay').style.display = 'flex';
     const input = document.getElementById(`amount-${to}`);
     const amount = parseFloat(input.value);
     if (!amount || amount <= 0) return alert("Enter a valid amount.");
@@ -472,10 +473,9 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from: username, to, amount, groupid })
     });
-
-    alert("Amount updated.");
     loadSettlements();
     loadTransactions();
+    document.getElementById('loadingOverlay').style.display = 'none'; 
   }
 
   async function loadTransactions() {

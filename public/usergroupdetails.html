@@ -321,6 +321,7 @@
   }
 
   function editSpending(id, title, date, amount) {
+    showLoading();
     editingId = id;
     document.getElementById("spendingTitle").value = title;
     document.getElementById("spendingDate").value = date;
@@ -328,6 +329,9 @@
     document.getElementById("formTitle").textContent = "Edit Spending";
     document.getElementById("submitBtn").textContent = "Update Spending";
     openModal();
+    fetchPerson();
+    loadSpendings();
+    hideLoading();
   }
 
   function resetForm() {
@@ -339,6 +343,7 @@
   }
 
   document.getElementById("spendingForm").addEventListener("submit", async (e) => {
+    showLoading();
     e.preventDefault();
     const payload = {
       personId,
@@ -357,13 +362,29 @@
     });
     closeModal();
     loadSpendings();
+    fetchPerson();
+    hideLoading();
   });
-
   async function deleteSpending(id) {
-    if (confirm("Are you sure to delete?")) {
+    try
+    {
+      showLoading();
+       if (confirm("Are you sure to delete?")) {
       await fetch(`/deletespending/${id}`, { method: "DELETE" });
       loadSpendings();
+      fetchPerson();
+      loadSpendings();
     }
+    }
+    catch
+    {
+      alert("failed to delete")
+    }
+    finally
+    {
+      hideLoading();
+    }
+   
   }
 
   document.getElementById("viewSettlementsBtn").addEventListener("click", () => {

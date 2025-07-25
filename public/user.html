@@ -27,6 +27,7 @@
       max-width: 400px;
       position: relative;
       color: #fff;
+      top: 20%;
     }
 
     .close-btn {
@@ -187,7 +188,7 @@
       left: 0;
       top: 0;
       transition: transform 0.3s ease;
-      z-index: 500;
+      z-index: 150;
       transform: translateX(-100%);
     }
 
@@ -460,19 +461,20 @@
 
   <div class="layout">
     <nav class="sidebar" id="sidebar">
-      <h2>User</h2>
+      <h2 id="username">Loading.....</h2>
       <ul>
         <li><a href="#" class="active" onclick="showSection('home', this)">Home</a></li>
         <li><a href="#" onclick="showSection('profile', this)">Profile</a></li>
         <li><a href="usershowpages.html">Groups</a></li>
         <li><a href="#" onclick="showSection('settings', this)">Settings</a></li>
-        <li><a href="#" onclick="openLogoutModal(event)">Logout</a></li>
+        <li><a href="#" onclick="openLogoutModal(event);toggleSidebar(this);document.querySelector('.hamburger').className = 'hamburger ';
+">Logout</a></li>
       </ul>
     </nav>
 
     <div class="main-content">
       <header>
-        <h2 id="section-title">Home</h2>
+        <h1 id="section-title">Home</h1>
       </header>
 
       <section id="home" class="section active">

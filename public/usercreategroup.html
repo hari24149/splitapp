@@ -91,6 +91,52 @@
       text-align: center;
       margin-bottom: 20px;
     }
+
+
+        #loadingOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    body.dark #loadingOverlay {
+      background: rgba(18,18,18,0.8);
+    }
+
+    .dots-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transform: scale(1);
+    }
+    .dot {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background-color: #1976d2;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    .dot:nth-child(1) { animation-delay: -0.3s; }
+    .dot:nth-child(2) { animation-delay: -0.1s; }
+    .dot:nth-child(3) { animation-delay: 0.1s; }
+    .dot:nth-child(4) { animation-delay: 0.3s; }
+    .dot:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes pulse {
+      0% { transform: scale(0.8); background-color: #b3d4fc; }
+      50% { transform: scale(1.2); background-color: #6793fb; }
+      100% { transform: scale(0.8); background-color: #b3d4fc; }
+    }
+
+    @media (max-width: 600px) {
+      .dots-container { transform: scale(0.7); }
+    }
   </style>
 </head>
 <body>
@@ -142,7 +188,9 @@
   </div>
 
   <button type="submit" class="submit-btn">Create Group</button>
+  <div id="loading"></div>
 </form>
+
 
 <script>
   let allUsers = [];
@@ -239,19 +287,21 @@
     selectedUsers = [];
     updateSelectedList();
   });
-
+  
   async function submitGroup(e) {
     e.preventDefault();
     const groupName = document.getElementById('groupName').value.trim();
     const numPersons = parseInt(document.getElementById('numPersons').value);
-
+    document.getElementById("loading").innerHTML = `<div id="loadingOverlay"><section class="dots-container"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></section></div>`;
     if (selectedUsers.length !== numPersons) {
       alert(`Please select exactly ${numPersons} users. Currently selected: ${selectedUsers.length}`);
+      document.getElementById("loading").innerHTML="<div></div>";
       return;
     }
 
     if (existingGroupNames.includes(groupName.toLowerCase())) {
       alert("Group name already exists. Please choose a unique name.");
+      document.getElementById("loading").innerHTML="<div></div>";
       return;
     }
 
@@ -271,8 +321,7 @@
     })
     .then(res => res.json())
     .then(() => {
-      alert("Group created successfully!");
-      window.location.href = "showgroups.html";
+      window.location.href = "usershowpages.html";
     })
     .catch(err => {
       alert("Failed to create group");

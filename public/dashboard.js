@@ -43,5 +43,7 @@ function startClock() {
   }
 
   updateClock();
-  setInterval(updateClock, 60000); // Update every minute
+  setInterval(updateClock, 30000); // Update every minute
 }
+
+document.getElementById("navlogo").innerHTML=localStorage.getItem("uname");

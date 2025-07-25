@@ -193,3 +193,6 @@ function openDeleteModal() {
     alert(data.message);
     if (data.success) closeModal();
 }
+
+document.getElementById("username").innerHTML= localStorage.getItem("uname");
+document.getElementById("usernamedash").innerHTML= localStorage.getItem("uname");
