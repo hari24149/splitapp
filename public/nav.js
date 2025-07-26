@@ -49,6 +49,7 @@ function initNavbar() {
     }
   }, true);
 
+  document.getElementById("username").innerHTML= localStorage.getItem("uname");
   // ✅ Fetch user details and update logo
   // fetch('/getUserDetails')
   //   .then(res => res.json())

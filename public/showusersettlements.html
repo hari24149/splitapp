@@ -472,7 +472,7 @@
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from: username, to, amount, groupid })
-    });
+    }); 
     loadSettlements();
     loadTransactions();
     document.getElementById('loadingOverlay').style.display = 'none'; 

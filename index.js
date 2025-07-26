@@ -130,7 +130,7 @@ app.post("/generate-otp", async (req, res) => {
   }
 });
 
-app.get('/status', statusMonitor().pageRoute);
+app.get('/status', authenticate, authorize, statusMonitor().pageRoute);
 app.post("/change-password", authorize, authenticate, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const userId = req.session?.user?._id;
@@ -321,7 +321,7 @@ app.post("/delete-account", authorize, authenticate, async (req, res) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
-app.get("/getusers", authenticate, async (req, res) => {
+app.get("/getusers", authorize, authenticate, async (req, res) => {
   try {
     const users = await User.find({}, { password: 0 });
     res.status(200).json({ success: true, users });
@@ -342,7 +342,7 @@ app.get("/logout", (req, res) => {
   });
 });
 
-app.post("/creategroup", async (req, res) => {
+app.post("/creategroup", authorize, authenticate, async (req, res) => {
   try {
     const {
       groupName,
@@ -435,7 +435,7 @@ app.post("/creategroup", async (req, res) => {
 
 
 // Example in Express.js
-app.get("/getgroups", async (req, res) => {
+app.get("/getgroups", authorize, authenticate, async (req, res) => {
   try {
     const personsData = await Person.find(); // Replace with your model    
     res.json({ success: true, personsData });
@@ -444,7 +444,7 @@ app.get("/getgroups", async (req, res) => {
   }
 });
 
-app.get("/getgroup/:id", async (req, res) => {
+app.get("/getgroup/:id",authorize, authenticate,  async (req, res) => {
   try {
     const person = await Person.findById(req.params.id);
     if (!person) return res.status(404).json({ error: "Person not found" });
@@ -454,7 +454,7 @@ app.get("/getgroup/:id", async (req, res) => {
   }
 });
 
-app.post("/addspending", async (req, res) => {
+app.post("/addspending", authorize, authenticate, async (req, res) => {
   const { personId, username, title, date, amount } = req.body;
 
   if (!personId || !username || !title || !date || typeof amount !== "number") {
@@ -511,7 +511,7 @@ app.post("/addspending", async (req, res) => {
   }
 });
 
-app.put("/updatespending/:id", async (req, res) => {
+app.put("/updatespending/:id", authorize, authenticate, async (req, res) => {
   const { username, title, date, amount, personId } = req.body;
 
   try {
@@ -589,7 +589,7 @@ app.put("/updatespending/:id", async (req, res) => {
   }
 });
 
-app.delete("/deletespending/:id", async (req, res) => {
+app.delete("/deletespending/:id", authorize, authenticate, async (req, res) => {
   try {
     const spending = await Spending.findByIdAndDelete(req.params.id);
     if (!spending) return res.status(404).json({ error: "Spending not found" });
@@ -644,7 +644,7 @@ app.delete("/deletespending/:id", async (req, res) => {
 
 
 // 📄 Get all spendings for a personId (group)
-app.get("/getspendings/:personId", async (req, res) => {
+app.get("/getspendings/:personId", authorize, authenticate, async (req, res) => {
   try {
     const spendings = await Spending.find({ personId: req.params.personId });
     res.json(spendings);
@@ -685,7 +685,7 @@ app.post("/deletegroup", authorize, authenticate, async (req, res) => {
 //** NEW API's
 
 // GET Settlement Data
-app.get("/api/getsettlement/:groupid/:username", async (req, res) => {
+app.get("/api/getsettlement/:groupid/:username", authorize, authenticate, async (req, res) => {
   const { groupid, username } = req.params;
   try {
     const record = await SettlementGroup.findOne({
@@ -703,7 +703,7 @@ app.get("/api/getsettlement/:groupid/:username", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-app.post("/api/updatesettlementamount", async (req, res) => {
+app.post("/api/updatesettlementamount", authorize, authenticate, async (req, res) => {
   const { from, to, amount, groupid } = req.body;
 
   try {
@@ -742,7 +742,7 @@ app.post("/api/updatesettlementamount", async (req, res) => {
     res.status(500).json({ success: false, msg: "Server error" });
   }
 });
-app.post("/api/settleuser", async (req, res) => {
+app.post("/api/settleuser", authorize, authenticate, async (req, res) => {
   const { from, to, groupid } = req.body;
 
   try {
@@ -785,7 +785,7 @@ app.post("/api/settleuser", async (req, res) => {
 
 //Transactions for given button API's
 
-app.post("/api/transaction", async (req, res) => {
+app.post("/api/transaction",authorize, authenticate, async (req, res) => {
   const { groupid, from, to, amount } = req.body;
   try {
     const transaction = new SettlementTransaction({ groupid, from, to, amount });
@@ -797,7 +797,7 @@ app.post("/api/transaction", async (req, res) => {
 });
 
 // Get all transactions for a user in a group
-app.get("/api/settlement/transactions/:groupid/:username", async (req, res) => {
+app.get("/api/settlement/transactions/:groupid/:username", authorize, authenticate, async (req, res) => {
   const { groupid, username } = req.params;
 
   try {

@@ -283,9 +283,10 @@
           container.innerHTML = "<p>No groups found.</p>";
           return;
         }
-
+        console.log(currentUserName)
         allUserGroups = groups.filter(group => group.users && Object.keys(group.users).includes(currentUserName));
         renderGroups(allUserGroups);
+        
 
       } catch (err) {
         console.error("Error loading groups", err);
