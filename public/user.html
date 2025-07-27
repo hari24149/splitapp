@@ -467,7 +467,8 @@
         <li><a href="#" onclick="showSection('profile', this)">Profile</a></li>
         <li><a href="usershowpages.html">Groups</a></li>
         <li><a href="#" onclick="showSection('settings', this)">Settings</a></li>
-        <li><a href="#" onclick="openLogoutModal(event);toggleSidebar(this);document.querySelector('.hamburger').className = 'hamburger ';
+        <li><a href="gorupstotalamt.html">Total amounts</a></li>
+        <li><a href="#" onclick="openLogoutModal(event);toggleSidebar(this);document.querySelector('.hamburger').className = 'hamburger '; Object.keys(localStorage).forEach(key => key !== 'theme' && localStorage.removeItem(key));
 ">Logout</a></li>
       </ul>
     </nav>
@@ -613,6 +614,8 @@
 
   <script src="dashboard.js"></script>
   <script src="userscript.js"></script>
+  <!-- <script src="totamt.js"></script> -->
+
 </body>
 
 </html>

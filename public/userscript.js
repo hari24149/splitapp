@@ -164,8 +164,7 @@ function openDeleteModal() {
         const data = await response.json();
         localStorage.setItem("uname",data.name)
         if (data.loggedIn) {
-          if (data.role !== 'admin') {
-            console.log("user")
+          if (data.role !== 'admin') {  
           } else {
             window.location.href = '/admin.html';
           }

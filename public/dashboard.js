@@ -40,10 +40,10 @@ function startClock() {
 
     if (dayDateEl)
       dayDateEl.textContent = `${day}, ${month} ${date}${suffix(date)}`;
+document.getElementById("send").innerHTML=localStorage.getItem("totalSend");    
+document.getElementById("receive").innerHTML=localStorage.getItem("totalReceive");  
   }
 
   updateClock();
   setInterval(updateClock, 30000); // Update every minute
-}
-
-document.getElementById("navlogo").innerHTML=localStorage.getItem("uname");
+} 

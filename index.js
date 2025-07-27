@@ -811,6 +811,13 @@ app.get("/api/settlement/transactions/:groupid/:username", authorize, authentica
   }
 });
 
+//net all API
+
+app.get("/getsettlements", async (req, res) => {
+  const settlements = await SettlementGroup.find({});
+  res.json({ settlements });
+});
+
 
 // Protected middleware
 function authenticate(req, res, next) {

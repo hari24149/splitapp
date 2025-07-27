@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Send/Receive Summary</title>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #3498db;
+      --light: #ecf0f1;
+      --danger: #e74c3c;
+      --success: #27ae60;
+      --bg-gradient: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      --row-gradient: linear-gradient(to right, #ffe6fa, #e0f7fa);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      color: white;
+      text-shadow: 1px 1px 2px #000;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 14px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      font-size: 1rem;
+    }
+
+    th {
+      background: var(--primary);
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background: #fdfdfd;
+    }
+
+    td:nth-child(2) {
+      color: var(--danger);
+      font-weight: bold;
+    }
+
+    td:nth-child(3) {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    select {
+      padding: 6px 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: var(--primary);
+      transition: border-color 0.3s;
+      width: 20%;
+    }
+
+    select:hover {
+      border-color: var(--accent);
+    }
+
+    #totals {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: white;
+      font-weight: bold;
+    }
+
+    /* Responsive for mobile */
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        margin-bottom: 20px;
+        background: var(--row-gradient);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      }
+
+      td {
+        text-align: left;
+        padding: 10px;
+        position: relative;
+        font-size: 1rem;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--primary);
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      select {
+        width: 86%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Send/Receive Summary (Across All Shared Groups)</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Person Name</th>
+        <th>Send To (₹)</th>
+        <th>Receive From (₹)</th>
+        <th>Groups</th>
+      </tr>
+    </thead>
+    <tbody id="summaryBody"></tbody>
+  </table>
+
+  <div id="totals"></div>
+
+  <script>
+    const currentUserName = localStorage.getItem("uname");
+
+    async function fetchData() {
+      const [groupsRes, settlementsRes] = await Promise.all([
+        fetch("/getgroups"),
+        fetch("/getsettlements")
+      ]);
+
+      const groupsData = await groupsRes.json();
+      const settlementsData = await settlementsRes.json();
+
+      const groups = Array.isArray(groupsData.personsData) ? groupsData.personsData : [];
+      const settlements = Array.isArray(settlementsData.settlements) ? settlementsData.settlements : [];
+
+      return { groups, settlements };
+    }
+
+    function getSharedGroupIds(groups, currentUserName) {
+      return groups
+        .filter(group => group.users && typeof group.users === "object" && currentUserName in group.users)
+        .map(group => group._id);
+    }
+
+    function calculateSummary(settlements, groupIds, currentUserName) {
+      const summary = {};
+
+      settlements
+        .filter(s => groupIds.includes(s.settlement_groupid))
+        .forEach(entry => {
+          const otherPerson = entry.name;
+          if (otherPerson === currentUserName) return;
+
+          if (!summary[otherPerson]) {
+            summary[otherPerson] = { send: 0, receive: 0, groupIds: new Set() };
+          }
+
+          const sendToCurrentUser = entry.sendto?.[currentUserName] || 0;
+          const receiveFromCurrentUser = entry.receivefrom?.[currentUserName] || 0;
+
+          summary[otherPerson].receive += sendToCurrentUser;
+          summary[otherPerson].send += receiveFromCurrentUser;
+          summary[otherPerson].groupIds.add(entry.settlement_groupid);
+        });
+
+      Object.entries(summary).forEach(([person, data]) => {
+        if (data.send > data.receive) {
+          data.send = data.send - data.receive;
+          data.receive = 0;
+        } else if (data.receive > data.send) {
+          data.receive = data.receive - data.send;
+          data.send = 0;
+        } else {
+          data.send = 0;
+          data.receive = 0;
+        }
+      });
+
+      return summary;
+    }
+
+    function getCommonGroups(groups, currentUserName, otherPerson) {
+      return groups.filter(group =>
+        group.users &&
+        group.users[currentUserName] !== undefined &&
+        group.users[otherPerson] !== undefined
+      );
+    }
+
+    function renderTable(summary, groups) {
+      const tbody = document.getElementById("summaryBody");
+      tbody.innerHTML = "";
+
+      let totalSend = 0;
+      let totalReceive = 0;
+
+      const entries = Object.entries(summary);
+
+      if (entries.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 4;
+        td.textContent = "No data available.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      entries.forEach(([person, data]) => {
+        const tr = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.textContent = person;
+        tdName.setAttribute("data-label", "Person Name");
+
+        const tdSend = document.createElement("td");
+        tdSend.textContent = "₹" + data.send.toFixed(2);
+        tdSend.setAttribute("data-label", "Send To");
+
+        const tdReceive = document.createElement("td");
+        tdReceive.textContent = "₹" + data.receive.toFixed(2);
+        tdReceive.setAttribute("data-label", "Receive From");
+
+        const tdGroups = document.createElement("td");
+        tdGroups.setAttribute("data-label", "Groups");
+
+        const groupList = getCommonGroups(groups, currentUserName, person);
+
+        if (groupList.length > 0) {
+          const select = document.createElement("select");
+          const defaultOption = document.createElement("option");
+          defaultOption.textContent = "-- Select Group --";
+          defaultOption.disabled = true;
+          defaultOption.selected = true;
+          select.appendChild(defaultOption);
+
+          groupList.forEach(group => {
+            const option = document.createElement("option");
+            option.value = group._id;
+            option.textContent = group.groupName;
+            select.appendChild(option);
+          });
+
+          select.addEventListener("change", (e) => {
+            const groupId = e.target.value;
+            const url = `/showusersettlements.html?groupid=${groupId}&name=${encodeURIComponent(currentUserName)}`;
+            window.location.href = url;
+          });
+
+          tdGroups.appendChild(select);
+        } else {
+          tdGroups.textContent = "No shared groups";
+        }
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdSend);
+        tr.appendChild(tdReceive);
+        tr.appendChild(tdGroups);
+        tbody.appendChild(tr);
+
+        totalSend += data.send;
+        totalReceive += data.receive;
+      });
+
+      // Save to localStorage
+      localStorage.setItem("totalSend", totalSend.toFixed(2));
+      localStorage.setItem("totalReceive", totalReceive.toFixed(2));
+
+      // Display on screen
+      document.getElementById("totals").innerHTML =
+        `Total Sent: ₹${totalSend.toFixed(2)} &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp; Total Received: ₹${totalReceive.toFixed(2)}`;
+    }
+
+    async function init() {
+      try {
+        const { groups, settlements } = await fetchData();
+        const groupIds = getSharedGroupIds(groups, currentUserName);
+        const summary = calculateSummary(settlements, groupIds, currentUserName);
+        renderTable(summary, groups);
+      } catch (err) {
+        console.error("Error initializing data:", err);
+        alert("Failed to load data.");
+      }
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
