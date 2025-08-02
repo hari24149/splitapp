@@ -182,6 +182,9 @@
 <body>
   <nav id="navbar-placeholder"></nav>
   <br>
+  <script>
+    var borrowed=0;
+  </script>
 <!-- Loading Overlay -->
 <div id="loadingOverlay">
   <section class="dots-container">
@@ -205,9 +208,11 @@
   <ul id="userList"></ul>
 
   <div class="button-group">
-    <button class="btn-primary" onclick="openModal()">Add Expense</button>
-    <button class="btn-primary" id="viewSettlementsBtn">View Settlements</button>
-  </div>
+  <button class="btn-primary" onclick="openModal();borrowed=0;">Add Expense</button>
+  <button class="btn-primary" id="viewSettlementsBtn">View Settlements</button>
+  <button class="btn-primary" onclick="openModal();borrowed=1;">Give Borrow</button> <!-- This one -->
+</div>
+
 
   <h3>All Spendings</h3>
   <table class="spending-table">
@@ -272,22 +277,30 @@
     currentUser = user.name;
   }
 
-  async function fetchPerson() {
-    const res = await fetch(`/getgroup/${personId}`);
-    const data = await res.json();
-    document.getElementById("groupName").textContent = data.groupName;
-    document.getElementById("groupDesc").textContent = data.groupDesc;
-    document.getElementById("groupCreatedBy").textContent = data.groupCreatedBy;
-    document.getElementById("formFillingDate").textContent = data.formFillingDate;
-    document.getElementById("numPersons").textContent = data.numPersons;
-    document.getElementById("totalAmount").textContent = data.totalAmount.toFixed(2);
+ async function fetchPerson() {
+  const res = await fetch(`/getgroup/${personId}`);
+  const data = await res.json();
+  document.getElementById("groupName").textContent = data.groupName;
+  document.getElementById("groupDesc").textContent = data.groupDesc;
+  document.getElementById("groupCreatedBy").textContent = data.groupCreatedBy;
+  document.getElementById("formFillingDate").textContent = data.formFillingDate;
+  document.getElementById("numPersons").textContent = data.numPersons;
+  document.getElementById("totalAmount").textContent = data.totalAmount.toFixed(2);
 
-    const userList = document.getElementById("userList");
-    userList.innerHTML = "";
-    for (const [name, amount] of Object.entries(data.users)) {
-      userList.innerHTML += `<li><strong>${name}:</strong> ₹${amount.toFixed(2)}</li>`;
-    }
+  const userList = document.getElementById("userList");
+  userList.innerHTML = "";
+  for (const [name, amount] of Object.entries(data.users)) {
+    userList.innerHTML += `<li><strong>${name}:</strong> ₹${amount.toFixed(2)}</li>`;
   }
+
+  // 👉 Show/hide the Give Borrow button
+  const giveBorrowBtn = document.querySelector('.button-group button:nth-child(3)');
+  if (data.numPersons == 2) {
+    giveBorrowBtn.style.display = 'inline-block';
+  } else {
+    giveBorrowBtn.style.display = 'none';
+  }
+}
 
   async function loadSpendings() {
     const res = await fetch(`/getspendings/${personId}`);
@@ -303,7 +316,7 @@
           <td>${item.date}</td>
           <td>₹${item.amount.toFixed(2)}</td>
           <td>${isUserRecord ? `
-            <button class="btn-primary" onclick="editSpending('${item._id}', '${item.title}', '${item.date}', ${item.amount})">Edit</button>
+            <button class="btn-primary" onclick="editSpending('${item._id}', '${item.title}', '${item.date}', ${item.amount});">Edit</button>
             <button class="btn-delete" onclick="deleteSpending('${item._id}')">Delete</button>` : `<span style="color:#aaa;">No Access</span>`}
           </td>
         </tr>`;
@@ -345,16 +358,35 @@
   document.getElementById("spendingForm").addEventListener("submit", async (e) => {
     showLoading();
     e.preventDefault();
+    // const payload = {
+    //   personId,
+    //   username: currentUser,
+    //   title: document.getElementById("spendingTitle").value + (borrowed === 1 ? "_borrowed" : ""),
+    //   date: document.getElementById("spendingDate").value,
+    //   amount: parseFloat(document.getElementById("spendingAmount").value),
+    //   isborrowed:borrowed
+    // };
+    let rawTitle = document.getElementById("spendingTitle").value;
+
+    if (borrowed === 1 && !rawTitle.includes("_borrowed")) {
+      rawTitle += "_borrowed";
+    }
+    if(rawTitle.includes("_borrowed"))
+    {
+      borrowed=1;
+    }
     const payload = {
       personId,
       username: currentUser,
-      title: document.getElementById("spendingTitle").value,
+      title: rawTitle,
       date: document.getElementById("spendingDate").value,
-      amount: parseFloat(document.getElementById("spendingAmount").value)
+      amount: parseFloat(document.getElementById("spendingAmount").value),
+      isborrowed: borrowed
     };
+
     const url = editingId ? `/updatespending/${editingId}` : "/addspending";
     const method = editingId ? "PUT" : "POST";
-
+    console.log(borrowed,"hai");
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },

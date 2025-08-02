@@ -278,13 +278,13 @@
         const res = await fetch("/getgroups");
         const data = await res.json();
         const groups = data.personsData;
-
         if (!groups || groups.length === 0) {
           container.innerHTML = "<p>No groups found.</p>";
           return;
         }
         console.log(currentUserName)
         allUserGroups = groups.filter(group => group.users && Object.keys(group.users).includes(currentUserName));
+        // console.log(allUserGroups.length);
         renderGroups(allUserGroups);
         
 

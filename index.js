@@ -9,6 +9,7 @@ const path = require("path");
 const nodemailer = require('nodemailer');
 const { User, Person, Spending, SettlementGroup,SettlementTransaction} = require("./models/models");
 const statusMonitor = require('express-status-monitor');
+const { title } = require("process");
 dotenv.config();
 
 const app = express();
@@ -455,8 +456,7 @@ app.get("/getgroup/:id",authorize, authenticate,  async (req, res) => {
 });
 
 app.post("/addspending", authorize, authenticate, async (req, res) => {
-  const { personId, username, title, date, amount } = req.body;
-
+  const { personId, username, title, date, amount,isborrowed } = req.body;
   if (!personId || !username || !title || !date || typeof amount !== "number") {
     return res.status(400).json({ error: "Missing or invalid fields" });
   }
@@ -479,7 +479,15 @@ app.post("/addspending", authorize, authenticate, async (req, res) => {
     }
 
     // 4. Split the amount among all users
-    const userCount = allDocs.length;
+    let userCount;
+    if(isborrowed==0)
+    {
+        userCount = allDocs.length;
+    }
+    else
+    {
+      userCount=1;
+    }
     const splitAmount = parseFloat((amount / userCount).toFixed(2)); // rounded to 2 decimals
 
     // 5. Update settlement records
@@ -512,7 +520,7 @@ app.post("/addspending", authorize, authenticate, async (req, res) => {
 });
 
 app.put("/updatespending/:id", authorize, authenticate, async (req, res) => {
-  const { username, title, date, amount, personId } = req.body;
+  const { username, title, date, amount, personId, isborrowed } = req.body;
 
   try {
     const spending = await Spending.findById(req.params.id);
@@ -526,7 +534,16 @@ app.put("/updatespending/:id", authorize, authenticate, async (req, res) => {
     const oldAmount = spending.amount;
 
     const rollbackOthers = allDocs.filter(doc => doc.name !== oldUsername);
-    const rollbackSplit = oldAmount / (rollbackOthers.length + 1);
+    let rollbackSplitlen; 
+     if(isborrowed==0)
+    {
+        rollbackSplitlen = rollbackOthers.length + 1;
+    }
+    else
+    {
+        rollbackSplitlen=1;
+    }
+    const rollbackSplit = oldAmount / rollbackSplitlen;
 
     for (const doc of allDocs) {
       if (doc.name === oldUsername) {
@@ -564,7 +581,16 @@ app.put("/updatespending/:id", authorize, authenticate, async (req, res) => {
     await spending.save();
 
     const newOthers = allDocs.filter(doc => doc.name !== username);
-    const newSplit = amount / (newOthers.length + 1);
+    let newOtherslen;
+    if(isborrowed==0)
+    {
+        newOtherslen = newOthers.length + 1;
+    }
+    else
+    {
+        newOtherslen=1;
+    }
+    const newSplit = amount / newOtherslen;
 
     await Promise.all(allDocs.map(async (doc) => {
       if (doc.name === username) {
@@ -580,7 +606,7 @@ app.put("/updatespending/:id", authorize, authenticate, async (req, res) => {
       }
       await doc.save();
     }));
-
+    sendEmailsToGroupUsers(personId, amount, username, title);
     res.status(200).json({ message: "Spending updated and settlements adjusted", data: spending });
 
   } catch (err) {
@@ -594,7 +620,8 @@ app.delete("/deletespending/:id", authorize, authenticate, async (req, res) => {
     const spending = await Spending.findByIdAndDelete(req.params.id);
     if (!spending) return res.status(404).json({ error: "Spending not found" });
 
-    const { personId, username, amount } = spending;
+    const { personId, username, amount, title} = spending;
+
 
     // ✅ Step 1: Update Person (if you're still maintaining Person schema)
     const person = await Person.findById(personId);
@@ -612,7 +639,21 @@ app.delete("/deletespending/:id", authorize, authenticate, async (req, res) => {
     }
 
     const otherUsers = allDocs.filter(doc => doc.name !== username);
-    const splitAmount = amount / (otherUsers.length + 1);
+    let splitAmountlen;
+    let borrowed=0;
+    if(title.includes("_borrowed"))
+    {
+      borrowed=1;
+    }
+    if(borrowed==0)
+    {
+        splitAmountlen = otherUsers.length + 1;
+    }
+    else
+    {
+        splitAmountlen=1;
+    }
+    const splitAmount = amount / splitAmountlen;
 
     await Promise.all(allDocs.map(async (doc) => {
       if (doc.name === username) {
@@ -730,8 +771,12 @@ app.post("/api/updatesettlementamount", authorize, authenticate, async (req, res
     // Mark modified paths
     fromRecord.markModified("sendto");
     toRecord.markModified("receivefrom");
+    userdata =  await User.findOne({ name: to });
+    email=userdata.email;
+    const group = await Person.findById(groupid, 'groupName');
+    groupname = group.groupName;
 
-
+sendMessage(email, `${from} has send you Rupees ${amount} in ${groupname} group`);
     // Save both
     await fromRecord.save();
     await toRecord.save();
@@ -819,6 +864,56 @@ app.get("/getsettlements", async (req, res) => {
 });
 
 
+async function sendEmailsToGroupUsers(groupId, amt, username, title) {
+  try {
+    // Step 1: Find all settlement group documents with the provided groupId
+    const groups = await SettlementGroup.find({ settlement_groupid: groupId });
+    // const grpname = await GroupModel.findById("68877df3104ca59f188d5481")
+    let group; 
+    group= await Person.findById(groupId);
+    if (groups.length === 0) {
+      console.log('No settlement group found for this ID');
+      return;
+    }
+
+    // Step 2: Collect all unique user names (from `name`, `sendto`, and `receivefrom`)
+    const allNames = new Set();
+
+    groups.forEach(group => {
+      if (group.name) allNames.add(group.name);
+
+      if (group.sendto) {
+        Object.keys(group.sendto).forEach(name => allNames.add(name));
+      }
+
+      if (group.receivefrom) {
+        Object.keys(group.receivefrom).forEach(name => allNames.add(name));
+      }
+    });
+
+    const uniqueNames = Array.from(allNames);
+
+    // Step 3: Fetch users from the User collection who match any of those names
+    const matchedUsers = await User.find({ name: { $in: uniqueNames } });
+
+    if (matchedUsers.length === 0) {
+      console.log('No matching users found');
+      return;
+    }
+
+    // Step 4: Send email to each user
+    matchedUsers.forEach(user => {
+      const message = `Hi ${user.name},\n\nThis is an update related to your group settlement in Group: ${group.groupName},${username} updated amount to ${amt} for title named ${title} .`;
+      sendMessage(user.email, message);
+    });
+
+    console.log(`Emails sent to ${matchedUsers.length} user(s).`);
+  } catch (err) {
+    console.error('Error sending group emails:', err);
+  }
+}
+
+
 // Protected middleware
 function authenticate(req, res, next) {
   if (req.session.user) {
@@ -878,4 +973,4 @@ async function sendMessage(toEmail, message) {
 }
 
 // Server start
-app.listen(3000, () => console.log("🚀 Server running on http://localhost:3000"));
+app.listen(3000, () => console.log("🚀 Server running on port 3000"));
